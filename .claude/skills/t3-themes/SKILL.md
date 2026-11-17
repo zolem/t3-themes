@@ -9,10 +9,12 @@ This repo holds custom T3 Code themes. T3 reads themes from its themes directory
 
 | Path | What it is |
 | --- | --- |
-| `themes/<id>.json` | A theme. The file name is the theme id. |
-| `themes/<id>.jpg` / `.png` / `.webp` | Optional background image for that theme. |
+| `themes/<id>/theme.json` | A theme. The folder name is the theme id. In T3 it's `<id>.json`. |
+| `themes/<id>/background.jpg` / `.png` / `.webp` | Optional background image. In T3 it's `<id>.jpg` (etc.). |
+| `themes/<id>/README.md` | Description, screenshots and one-theme install steps. |
+| `themes/<id>/screenshots/` | Screenshots taken with demo data, never the user's real projects or threads. |
 | `scripts/install.sh [id...]` | Copy themes from the repo into T3. No ids means all. |
-| `scripts/pull.sh [id...]` | Copy themes from T3 back into the repo. No ids means all. |
+| `scripts/pull.sh [id...]` | Copy themes from T3 back into the repo. No ids means every theme already in the repo; a new id creates its folder. |
 
 ## Use a theme
 
@@ -33,13 +35,13 @@ Live edits through T3 are the fastest loop, because the change shows at once:
 3. You can't see the result. Make one small change at a time and ask the user how it looks.
 4. When the user is happy, save it (next section).
 
-You can also edit `themes/<id>.json` in the repo directly, then run `./scripts/install.sh <id>` and reselect the theme. Don't mix the two: if a theme was edited in T3, pull it first or the install will overwrite those edits.
+You can also edit `themes/<id>/theme.json` in the repo directly, then run `./scripts/install.sh <id>` and reselect the theme. Don't mix the two: if a theme was edited in T3, pull it first or the install will overwrite those edits.
 
 ## Save changes into the repo
 
 T3 writes edited and new themes to its themes directory, not to this repo. To keep them:
 
-1. `./scripts/pull.sh <id>`. Pass ids so you don't pull unrelated themes the user has installed. With no ids it pulls every theme in T3's directory.
+1. `./scripts/pull.sh <id>`. With no ids it pulls every theme that already has a folder in `themes/`.
 2. Check the result before committing (see Checks below) and look at `git diff themes/`.
 3. Commit: `git add themes && git commit -m "Tune <theme name>"`. Only commit or push when the user asks.
 
@@ -48,7 +50,22 @@ T3 writes edited and new themes to its themes directory, not to this repo. To ke
 1. Pick a short kebab-case id. It becomes the file name and the id in T3.
 2. Start from the guide (`t3_theme_read`) or copy an existing theme in `themes/`.
 3. Publish it with `t3_theme_set` (`themeId` plus `theme`), iterate with the user, then `./scripts/pull.sh <id>`.
-4. Add a row to the theme table in `README.md` with the name, id and a one-line description of the look.
+4. Take its screenshots (see Screenshots).
+5. Add a row to the theme table in `README.md` with the name (linked to its folder), id and a one-line description of the look, and add its `thread.png` to the screenshot table.
+6. Write `themes/<id>/README.md`, following an existing theme's README: description, id, appearance, the copyable agent prompt and the `curl` install commands with this theme's id.
+
+## Screenshots
+
+Never screenshot the user's own T3. It shows their real projects, threads, machine name and shell prompt. Use the demo copy instead, which has fake data and lives in `~/.t3-themes-demo`:
+
+```sh
+cd scripts/screenshots
+npm install && npx playwright install chromium   # first time only
+npm run shoot -- <id>            # or no id for every theme
+npm run demo                     # run the demo copy for the user to open in their browser
+```
+
+`shoot` writes `new-thread.png`, `thread.png` and `panels.png` (terminal and right panel open) to `themes/<id>/screenshots/`, and the theme README already shows them. If the demo data doesn't exist yet, or you pass `--reseed`, the tool runs real agent turns to create it. Tell the user before doing that. Look at every screenshot before committing it.
 
 ## Theme file format
 
@@ -77,7 +94,7 @@ A JSON object:
 Run before committing a theme:
 
 ```sh
-python3 - themes/*.json <<'PY'
+python3 - themes/*/theme.json <<'PY'
 import json, sys
 for path in sys.argv[1:]:
     t = json.load(open(path))

@@ -1,0 +1,12 @@
+{
+  "name": "t3-themes-screenshots",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "shoot": "node shoot.mjs",
+    "demo": "node shoot.mjs --serve"
+  },
+  "devDependencies": {
+    "playwright": "^1.58.0"
+  }
+}
