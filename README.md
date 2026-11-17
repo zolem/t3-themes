@@ -7,12 +7,13 @@ Custom themes for [T3 Code](https://github.com/pingdotgg/t3code) that restyle th
 | [LCARS](themes/lcars) | `lcars` | Starfleet LCARS console: elbow frames, pill buttons, numbered panels |
 | [Workshop](themes/workshop) | `workshop` | Holographic garage workshop: 3D-tilted side walls, arc-reactor status, voice waveform composer |
 | [Luna XP](themes/windows-xp) | `windows-xp` | Early-2000s desktop look: blue title bars, glossy buttons, light theme |
+| [Azeroth](themes/azeroth) | `azeroth` | Fantasy MMO game screen: quest log sidebar, parchment replies, action-bar composer, misty world background |
 
 Each theme's folder has its own README with screenshots and a one-step install for just that theme.
 
-| LCARS | Workshop | Luna XP |
-| --- | --- | --- |
-| [![LCARS](themes/lcars/screenshots/thread.png)](themes/lcars) | [![Workshop](themes/workshop/screenshots/thread.png)](themes/workshop) | [![Luna XP](themes/windows-xp/screenshots/thread.png)](themes/windows-xp) |
+| LCARS | Workshop | Luna XP | Azeroth |
+| --- | --- | --- | --- |
+| [![LCARS](themes/lcars/screenshots/thread.png)](themes/lcars) | [![Workshop](themes/workshop/screenshots/thread.png)](themes/workshop) | [![Luna XP](themes/windows-xp/screenshots/thread.png)](themes/windows-xp) | [![Azeroth](themes/azeroth/screenshots/thread.png)](themes/azeroth) |
 
 ## Install
 
