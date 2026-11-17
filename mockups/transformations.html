@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>T3 Code — game transformations</title>
+<style>
+:root{
+  --noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html{color-scheme:dark;scrollbar-color:rgba(111,220,255,.35) #05080c}
+body{margin:0;background:#0b0b0d;color:#e8e8ea;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Avenir Next",sans-serif;min-width:1530px}
+.top{padding:36px 44px 14px}
+.top h1{margin:0 0 6px;font-size:27px;letter-spacing:-.01em}
+.top p{margin:0;color:#9a9aa3;max-width:960px}
+nav{position:sticky;top:0;z-index:100;display:flex;gap:6px;padding:12px 44px;background:rgba(11,11,13,.9);backdrop-filter:blur(10px);border-bottom:1px solid #222}
+nav a{color:#cfcfd6;text-decoration:none;font-size:12.5px;padding:4px 12px;border:1px solid #2c2c33;border-radius:999px}
+nav a:hover{background:#1c1c22;color:#fff}
+.concept{padding:44px 44px 64px;border-bottom:1px solid #1d1d22;scroll-margin-top:56px}
+.c-head{display:grid;grid-template-columns:1fr 600px;gap:44px;margin-bottom:22px;max-width:1440px}
+.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#8a8a94}
+.c-head h2{margin:2px 0 8px;font-size:28px}
+.c-head p{margin:0 0 10px;color:#c9c9d1;max-width:740px}
+.map{display:grid;grid-template-columns:110px 1fr;gap:6px 14px;font-size:13px;margin:4px 0 0}
+.map dt{color:#8a8a94}
+.map dd{margin:0;color:#e2e2e8}
+.real{font-size:12.5px;color:#9a9aa3;margin:12px 0 0}
+.real b{color:#d8d8de;font-weight:600}
+.variants{display:flex;gap:6px;margin:0 0 14px;align-items:center}
+.variants span{font-size:12px;color:#8a8a94;margin-right:4px}
+.variants button{font:12.5px -apple-system,sans-serif;padding:5px 13px;border-radius:999px;border:1px solid #33333b;background:#16161a;color:#cfcfd6;cursor:pointer}
+.variants button.on{background:#e8e8ea;color:#111;border-color:#e8e8ea}
+.win{position:relative;width:1440px;height:880px;border-radius:12px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.07)}
+.lights{display:flex;gap:7px;flex:none}.lights i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{50%{opacity:0}}
+@keyframes pulse{50%{opacity:.35}}
+/* A normal website in the browser panel. Themes can frame it but not restyle it. */
+.site{background:#f7f7f8;color:#1b1b1f;font:13px/1.45 -apple-system,"Helvetica Neue",sans-serif;height:100%;display:flex;flex-direction:column;text-align:left;letter-spacing:0;text-transform:none}
+.site-nav{display:flex;gap:18px;align-items:center;padding:12px 18px;background:#fff;border-bottom:1px solid #e6e6ea;font-size:12px;color:#55555f}
+.site-nav b{color:#111;font-size:14px;margin-right:auto}
+.site-body{flex:1;display:grid;place-items:center}
+.site-card{width:270px;background:#fff;border:1px solid #e3e3e8;border-radius:10px;padding:22px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.site-card h3{margin:0 0 3px;font-size:18px;color:#111}
+.site-card .sub{color:#77777f;font-size:12px;margin-bottom:12px}
+.site-card label{display:block;font-size:11px;color:#55555f;margin:8px 0 4px}
+.site-in{border:1px solid #d9d9df;border-radius:6px;padding:7px 9px;color:#33333a;background:#fff}
+.site-btn{margin-top:14px;background:#4f46e5;color:#fff;text-align:center;border-radius:6px;padding:8px;font-weight:600}
+.site-foot{margin-top:10px;text-align:center;font-size:11.5px;color:#4f46e5}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>T3 Code transformations</h1>
+  <p>Five concepts that rebuild T3 in a game's own interface language instead of recoloring it. Each one keeps T3's layout (sidebar, chat, composer and the right panel, open here to a browser or a diff) but gives every part a new role in that world. Variants switch with the buttons above a mock.</p>
+</div>
+<nav>
+  <a href="#halo">Halo · Visor</a>
+  <a href="#ironman">Iron Man · Workshop</a>
+  <a href="#diablo">Diablo · Sanctuary</a>
+  <a href="#warcraft">Warcraft · Realm</a>
+  <a href="#starcraft">StarCraft · Command</a>
+</nav>
+<section class="concept" id="halo">
+<style>
+.h-win{--cy:#49d7e6;--am:#f5a524;--rd:#ff4d3d;--wh:#dff6f8;--dim:#56747c;--din:"DIN Condensed","Avenir Next Condensed",sans-serif;background:radial-gradient(ellipse 80% 70% at 50% 45%,#0c1c25,#04080b 75%);color:var(--wh);font:13.5px/1.5 "Avenir Next",sans-serif}
+.h-hex{position:absolute;inset:0;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='72'%3E%3Cpath d='M21 0l21 12v24L21 48 0 36V12zM21 48v24' fill='none' stroke='%2349d7e6' stroke-opacity='.05'/%3E%3C/svg%3E")}
+.h-visor{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 150px 36px rgba(0,0,0,.78)}
+.h-visor::before{content:"";position:absolute;left:-15%;right:-15%;top:-62%;height:100%;border-radius:50%;border-bottom:1px solid rgba(73,215,230,.14)}
+.h-visor::after{content:"";position:absolute;left:-15%;right:-15%;bottom:-70%;height:100%;border-radius:50%;border-top:1px solid rgba(73,215,230,.10)}
+.h-top{position:absolute;top:0;left:0;right:0;height:124px;display:grid;grid-template-columns:320px 1fr 320px;align-items:start;padding:14px 24px}
+.h-tl{display:flex;flex-direction:column;gap:12px}
+.h-brand{font:700 15px var(--din);letter-spacing:.22em;color:var(--cy)}
+.h-brand small{display:block;font-size:11px;color:var(--dim);letter-spacing:.2em;font-weight:400}
+.h-center{display:flex;flex-direction:column;align-items:center}
+.h-shl{width:470px;display:flex;justify-content:space-between;font:12px var(--din);letter-spacing:.22em;color:var(--cy);margin-bottom:3px}
+.h-shieldbar{width:470px;height:10px;position:relative;background:repeating-linear-gradient(90deg,rgba(73,215,230,.15) 0 20px,transparent 20px 23px);clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 100%,0 100%)}
+.h-shieldbar i{position:absolute;inset:0;width:68%;background:repeating-linear-gradient(90deg,var(--cy) 0 20px,transparent 20px 23px);filter:drop-shadow(0 0 6px rgba(73,215,230,.9))}
+.h-compass{width:540px;height:16px;margin-top:10px;position:relative}
+.h-ticks{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(223,246,248,.4) 0 1px,transparent 1px 13px) 0 7px/100% 6px no-repeat,repeating-linear-gradient(90deg,rgba(223,246,248,.75) 0 1px,transparent 1px 65px) 0 2px/100% 12px no-repeat;-webkit-mask:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent);mask:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent)}
+.h-wpm{position:absolute;left:50%;top:-1px;width:11px;height:11px;background:var(--am);transform:translateX(-50%) rotate(45deg);box-shadow:0 0 12px var(--am)}
+.h-wpm2{position:absolute;left:28%;top:2px;width:7px;height:7px;border:1.5px solid var(--cy);transform:rotate(45deg)}
+.h-wpm3{position:absolute;left:69%;top:2px;width:7px;height:7px;border:1.5px solid var(--rd);transform:rotate(45deg)}
+.h-wpt{font:700 26px/1 var(--din);letter-spacing:.08em;text-transform:uppercase;margin-top:12px;text-shadow:0 0 14px rgba(73,215,230,.45)}
+.h-wps{font:12.5px var(--din);letter-spacing:.2em;color:var(--am);margin-top:5px}
+.h-ammo{justify-self:end;display:grid;grid-template-columns:auto auto;gap:2px 12px;align-items:center}
+.h-ammo-n{font:700 50px/1 var(--din);color:var(--wh);text-shadow:0 0 14px rgba(73,215,230,.5);grid-row:span 2}
+.h-rounds{width:128px;height:18px;background:repeating-linear-gradient(90deg,var(--cy) 0 2px,transparent 2px 5px) 0 0/100% 7px no-repeat,repeating-linear-gradient(90deg,rgba(73,215,230,.25) 0 2px,transparent 2px 5px) 0 11px/100% 7px no-repeat}
+.h-ammo-l{font:12px var(--din);letter-spacing:.16em;color:var(--dim)}
+.h-ammo-l b{color:var(--rd);font-weight:400}
+.h-gren{grid-column:1/-1;justify-self:end;margin-top:8px;font:14px var(--din);letter-spacing:.16em;color:var(--am);display:flex;gap:6px;align-items:center}
+.h-gren i{width:9px;height:9px;background:var(--am);transform:rotate(45deg);box-shadow:0 0 8px var(--am)}
+.h-gren i.e{background:none;border:1px solid var(--dim);box-shadow:none}
+.h-body{position:absolute;top:132px;left:0;right:0;bottom:0;display:grid;grid-template-columns:292px 1fr 520px;gap:22px;padding:0 24px 24px}
+.h-sb{display:flex;flex-direction:column;gap:2px;min-width:0}
+.h-sec{font:13px var(--din);letter-spacing:.22em;color:var(--dim);margin:8px 0 3px;display:flex;align-items:center;gap:8px}
+.h-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(73,215,230,.3),transparent)}
+.h-unit{display:grid;grid-template-columns:30px 1fr;gap:0 10px;padding:8px 10px 9px;position:relative;align-items:center}
+.h-cs{font:700 23px/1 var(--din);color:var(--dim);grid-row:span 2}
+.h-name{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-st{display:flex;align-items:center;gap:8px;margin-top:5px}
+.h-bar{flex:1;height:5px;position:relative;background:repeating-linear-gradient(90deg,rgba(73,215,230,.13) 0 10px,transparent 10px 12px)}
+.h-bar i{position:absolute;inset:0;width:calc(var(--f)*100%);background:repeating-linear-gradient(90deg,var(--sc) 0 10px,transparent 10px 12px);filter:drop-shadow(0 0 3px var(--sc))}
+.h-sl{font:11.5px var(--din);letter-spacing:.14em;color:var(--sc);width:92px;text-align:right}
+.h-unit.run{--sc:var(--cy)}.h-unit.inp{--sc:var(--am)}.h-unit.done{--sc:#bfe3e8}.h-unit.fail{--sc:var(--rd)}
+.h-unit.inp .h-bar i,.h-unit.fail .h-sl{animation:pulse 1s steps(1) infinite}
+.h-unit.run .h-bar i{animation:hcharge 2.4s ease-in-out infinite}
+@keyframes hcharge{0%{width:calc(var(--f)*80%)}50%{width:calc(var(--f)*100%)}100%{width:calc(var(--f)*80%)}}
+.h-unit.on{background:linear-gradient(90deg,rgba(245,165,36,.17),rgba(245,165,36,.02));clip-path:polygon(12px 0,100% 0,100% 100%,0 100%,0 12px)}
+.h-unit.on::before{content:"";position:absolute;left:0;top:12px;bottom:0;width:2px;background:var(--am)}
+.h-unit.on .h-cs{color:var(--am)}
+.h-tracker{margin-top:auto;display:flex;align-items:flex-end;gap:14px;padding-top:12px}
+.h-radar{width:150px;height:150px;flex:none;border-radius:50%;position:relative;overflow:hidden;border:1px solid rgba(73,215,230,.55);background:radial-gradient(circle,transparent 0 24px,rgba(73,215,230,.25) 24px 25px,transparent 25px 49px,rgba(73,215,230,.2) 49px 50px,transparent 50px),linear-gradient(rgba(73,215,230,.18),rgba(73,215,230,.18)) center/1px 100% no-repeat,linear-gradient(90deg,rgba(73,215,230,.18),rgba(73,215,230,.18)) center/100% 1px no-repeat,rgba(4,12,16,.65)}
+.h-radar::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(73,215,230,.4),transparent 75deg);animation:spin 3.2s linear infinite}
+.h-radar i{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 9px var(--c)}
+.h-radar b{position:absolute;left:50%;top:50%;width:0;height:0;border:6px solid transparent;border-bottom:10px solid var(--am);transform:translate(-50%,-75%)}
+.h-trl{font:13px/1.3 var(--din);letter-spacing:.2em;color:var(--cy)}
+.h-trl span{color:var(--dim);font-size:11.5px}
+.h-conv{display:flex;flex-direction:column;min-width:0}
+.h-col{flex:1;display:flex;flex-direction:column;gap:16px;padding:4px 6px 0;overflow:hidden}
+.h-tag{font:12.5px var(--din);letter-spacing:.24em;color:var(--dim);margin-bottom:5px}
+.h-tag.cy{color:var(--cy)}
+.h-user{align-self:flex-end;max-width:430px;text-align:right}
+.h-ubox{text-align:left;background:rgba(245,165,36,.08);border:1px solid rgba(245,165,36,.4);padding:10px 14px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+.h-intel{font:13px var(--din);letter-spacing:.16em;color:var(--dim);text-transform:uppercase;border-left:2px solid var(--dim);padding-left:10px}
+.h-intel b{color:var(--cy);font-weight:400}
+.h-ai{display:grid;grid-template-columns:46px 1fr;gap:14px}
+.h-holo{width:44px;height:44px;position:relative;margin-top:2px}
+.h-holo::before{content:"";position:absolute;inset:5px;border:1.5px solid var(--cy);transform:rotate(45deg);box-shadow:0 0 14px rgba(73,215,230,.7),inset 0 0 10px rgba(73,215,230,.5);animation:hflick 3.4s infinite}
+.h-holo::after{content:"";position:absolute;inset:16px;background:var(--cy);transform:rotate(45deg);box-shadow:0 0 14px var(--cy)}
+@keyframes hflick{0%,46%,50%,100%{opacity:1}48%{opacity:.25}}
+.h-ai p{margin:0 0 10px;line-height:1.6;color:#cfe6ea}
+.h-ai code{font:12px Menlo,monospace;color:var(--am)}
+.h-ai pre{margin:0 0 10px;background:rgba(2,8,11,.85);border:1px solid rgba(73,215,230,.25);padding:12px 16px;font:11.5px/1.6 Menlo,monospace;color:#cfe6ea;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.h-ai .k{color:var(--cy)}.h-ai .f{color:var(--am)}.h-ai .s{color:#9fe08a}.h-ai .c{color:var(--dim)}
+.h-comp{position:relative;margin-top:14px;padding:12px 78px 11px 18px;border:1px solid rgba(73,215,230,.32);background:rgba(73,215,230,.05);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px)}
+.h-cl{font:12.5px var(--din);letter-spacing:.24em;color:var(--cy)}
+.h-cl::before{content:"";display:inline-block;width:7px;height:7px;background:var(--cy);transform:rotate(45deg);margin-right:8px;animation:pulse 1.4s infinite}
+.h-in{color:#88a9b0;font-size:14.5px;margin:6px 0 10px}
+.h-chips span{font:12.5px var(--din);letter-spacing:.16em;color:var(--wh);border:1px solid rgba(86,116,124,.8);padding:3px 9px 2px;margin-right:6px}
+.h-ret{position:absolute;right:18px;top:50%;width:46px;height:46px;transform:translateY(-50%);border:1.5px solid var(--am);border-radius:50%;box-shadow:0 0 14px rgba(245,165,36,.5)}
+.h-ret::before{content:"";position:absolute;inset:-9px;background:linear-gradient(var(--am),var(--am)) center/1.5px 100% no-repeat,linear-gradient(90deg,var(--am),var(--am)) center/100% 1.5px no-repeat;-webkit-mask:radial-gradient(circle,transparent 0 13px,#000 13px);mask:radial-gradient(circle,transparent 0 13px,#000 13px)}
+.h-ret::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:var(--am);transform:translate(-50%,-50%)}
+.h-panel{display:flex;flex-direction:column;min-width:0}
+.h-tabs{display:flex;gap:20px;align-items:center;font:13.5px var(--din);letter-spacing:.22em;color:var(--dim);padding:2px 4px 10px}
+.h-tabs .on{color:var(--cy);box-shadow:0 2px 0 var(--cy);padding-bottom:3px}
+.h-url{margin-left:auto;font:11px Menlo,monospace;letter-spacing:0;color:var(--dim)}
+.h-target{flex:1;position:relative;padding:16px;--b:var(--cy);background:linear-gradient(var(--b),var(--b)) left top/26px 2px no-repeat,linear-gradient(var(--b),var(--b)) left top/2px 26px no-repeat,linear-gradient(var(--b),var(--b)) right top/26px 2px no-repeat,linear-gradient(var(--b),var(--b)) right top/2px 26px no-repeat,linear-gradient(var(--b),var(--b)) left bottom/26px 2px no-repeat,linear-gradient(var(--b),var(--b)) left bottom/2px 26px no-repeat,linear-gradient(var(--b),var(--b)) right bottom/26px 2px no-repeat,linear-gradient(var(--b),var(--b)) right bottom/2px 26px no-repeat}
+.h-tin{height:100%;overflow:hidden;box-shadow:0 0 0 1px rgba(73,215,230,.25),0 0 40px rgba(73,215,230,.12)}
+.h-xh{position:absolute;left:50%;top:59%;width:120px;height:120px;transform:translate(-50%,-50%);border:1.5px solid rgba(245,165,36,.85);border-radius:50%;pointer-events:none}
+.h-xh::before{content:"";position:absolute;inset:-14px;background:linear-gradient(rgba(245,165,36,.85),rgba(245,165,36,.85)) center/1.5px 100% no-repeat,linear-gradient(90deg,rgba(245,165,36,.85),rgba(245,165,36,.85)) center/100% 1.5px no-repeat;-webkit-mask:radial-gradient(circle,transparent 0 46px,#000 46px);mask:radial-gradient(circle,transparent 0 46px,#000 46px)}
+.h-lock,.h-range{position:absolute;font:13.5px var(--din);letter-spacing:.2em;background:rgba(4,8,11,.88);padding:3px 9px 2px}
+.h-lock{top:30px;right:30px;color:var(--am);animation:pulse 1.1s steps(1) infinite}
+.h-range{bottom:30px;left:30px;color:var(--cy)}
+</style>
+<div class="c-head">
+  <div>
+    <div class="kicker">Halo · Dark</div>
+    <h2>Visor</h2>
+    <p>You see T3 through a helmet visor. The app frame disappears and everything becomes a heads-up display floating on curved glass: the thread title is a waypoint on a compass, your threads are a fireteam with shield bars, and the browser becomes a locked-on target view.</p>
+    <p class="real"><b>Doable with CSS:</b> the HUD layout, roster rows, shield bars colored by thread state, transmission styling, reticle send button, target frame. <b>Decorative:</b> the context fill level, tracker blip positions and the change counter, unless T3 exposes those values.</p>
+  </div>
+  <dl class="map">
+    <dt>Header</dt><dd>Shield bar over a compass; the thread title is the waypoint, with other threads as markers</dd>
+    <dt>Sidebar</dt><dd>Fireteam roster: numbered callsigns with shield bars for state (engaged, awaiting orders, down, complete)</dd>
+    <dt>Chat</dt><dd>Incoming transmissions from an AI hologram; your messages are tagged Operator</dd>
+    <dt>Composer</dt><dd>"Open channel" panel with a targeting reticle as the send button</dd>
+    <dt>Right panel</dt><dd>Browser as a target view: corner brackets, lock-on reticle, "RANGE 3000" for localhost:3000</dd>
+    <dt>Corners</dt><dd>Ammo counter for lines changed, grenade pips for pending approvals, motion tracker for threads</dd>
+  </dl>
+</div>
+<div class="win h-win">
+  <div class="h-hex"></div>
+  <div class="h-top">
+    <div class="h-tl"><div class="lights"><i></i><i></i><i></i></div><div class="h-brand">T3 // VISOR<small>UNSC OPERATOR INTERFACE</small></div></div>
+    <div class="h-center">
+      <div class="h-shl"><span>SHIELDS</span><span>CONTEXT 68%</span></div>
+      <div class="h-shieldbar"><i></i></div>
+      <div class="h-compass"><div class="h-ticks"></div><span class="h-wpm2"></span><span class="h-wpm"></span><span class="h-wpm3"></span></div>
+      <div class="h-wpt">Refactor auth middleware</div>
+      <div class="h-wps">WAYPOINT · FEAT/AUTH-REFACTOR · 08:31</div>
+    </div>
+    <div class="h-ammo">
+      <div class="h-ammo-n">142</div>
+      <div class="h-rounds"></div>
+      <div class="h-ammo-l">LINES +142 · <b>−38</b></div>
+      <div class="h-gren"><i></i><i class="e"></i><i class="e"></i>1 APPROVAL</div>
+    </div>
+  </div>
+  <div class="h-body">
+    <aside class="h-sb">
+      <div class="h-sec">SQUAD · WEB-APP</div>
+      <div class="h-unit run on" style="--f:.72"><span class="h-cs">01</span><div class="h-name">Refactor auth middleware</div><div class="h-st"><div class="h-bar"><i></i></div><span class="h-sl">ENGAGED</span></div></div>
+      <div class="h-unit inp" style="--f:.45"><span class="h-cs">02</span><div class="h-name">Add dark mode toggle</div><div class="h-st"><div class="h-bar"><i></i></div><span class="h-sl">AWAITING ORDERS</span></div></div>
+      <div class="h-unit done" style="--f:1"><span class="h-cs">03</span><div class="h-name">Fix flaky e2e test</div><div class="h-st"><div class="h-bar"><i></i></div><span class="h-sl">COMPLETE · 1H</span></div></div>
+      <div class="h-sec">SQUAD · API-SERVER</div>
+      <div class="h-unit fail" style="--f:.08"><span class="h-cs">04</span><div class="h-name">Migrate to Postgres 17</div><div class="h-st"><div class="h-bar"><i></i></div><span class="h-sl">SHIELDS DOWN</span></div></div>
+      <div class="h-unit run" style="--f:.5"><span class="h-cs">05</span><div class="h-name">Tune rate limiter</div><div class="h-st"><div class="h-bar"><i></i></div><span class="h-sl">ENGAGED</span></div></div>
+      <div class="h-unit done" style="--f:1"><span class="h-cs">06</span><div class="h-name">Add OpenAPI docs</div><div class="h-st"><div class="h-bar"><i></i></div><span class="h-sl">COMPLETE · 1D</span></div></div>
+      <div class="h-tracker">
+        <div class="h-radar"><i style="--c:#49d7e6;left:92px;top:38px"></i><i style="--c:#f5a524;left:38px;top:52px"></i><i style="--c:#ff4d3d;left:104px;top:96px"></i><i style="--c:#49d7e6;left:60px;top:110px"></i><b></b></div>
+        <div class="h-trl">MOTION<br>TRACKER<br><span>6 THREADS<br>2 ACTIVE · 1 HOSTILE</span></div>
+      </div>
+    </aside>
+    <main class="h-conv">
+      <div class="h-col">
+        <div class="h-user"><div class="h-tag">OPERATOR</div><div class="h-ubox">Split the session check out of the auth middleware and add tests for expired tokens. Check the login page after.</div></div>
+        <div class="h-intel">› INTEL · <b>Read 4 files</b> · Ran 2 commands · Edited auth/session.ts</div>
+        <div class="h-ai"><div class="h-holo"></div><div>
+          <div class="h-tag cy">INCOMING TRANSMISSION · AI CONSTRUCT</div>
+          <p>Done. I moved the check into a new <code>verifySession()</code> helper and covered the expired-token case. The login page in the target view now redirects correctly.</p>
+<pre><span class="c">// auth/session.ts</span>
+<span class="k">export async function</span> <span class="f">verifySession</span>(req: Request) {
+  <span class="k">const</span> token = req.cookies.<span class="f">get</span>(<span class="s">"sid"</span>)
+  <span class="k">if</span> (!token) <span class="k">throw new</span> <span class="f">AuthError</span>(<span class="s">"missing session"</span>)
+  <span class="k">return</span> sessions.<span class="f">verify</span>(token)
+}</pre>
+          <p>All 24 tests pass. Ready to open the PR on your mark.</p>
+        </div></div>
+      </div>
+      <div class="h-comp">
+        <div class="h-cl">OPEN CHANNEL</div>
+        <div class="h-in">Give an order… @ to mark a file</div>
+        <div class="h-chips"><span>OPUS 5.5</span><span>FULL ACCESS</span><span>+ ATTACH</span></div>
+        <div class="h-ret"></div>
+      </div>
+    </main>
+    <section class="h-panel">
+      <div class="h-tabs"><span class="on">TARGET VIEW</span><span>DIFF</span><span>FILES</span><span class="h-url">localhost:3000/login</span></div>
+      <div class="h-target">
+        <div class="h-tin"><div class="site"><div class="site-nav"><b>Acme</b><span>Product</span><span>Pricing</span><span>Docs</span></div><div class="site-body"><div class="site-card"><h3>Welcome back</h3><div class="sub">Sign in to your account</div><label>Email</label><div class="site-in">you@example.com</div><label>Password</label><div class="site-in">••••••••••</div><div class="site-btn">Sign in</div><div class="site-foot">Forgot password?</div></div></div></div></div>
+        <div class="h-xh"></div>
+        <div class="h-lock">◆ TARGET LOCKED</div>
+        <div class="h-range">RANGE 3000 · 200 OK</div>
+      </div>
+    </section>
+  </div>
+  <div class="h-visor"></div>
+</div>
+</section>
+<section class="concept" id="ironman">
+<style>
+.im-win{--c:#6fdcff;--cw:#e8fbff;--am:#ffb23f;--rd:#ff4f5a;--gr:#6cf0b5;--dim:#4f7a8e;--cond:"Avenir Next Condensed","Avenir Next",sans-serif;background:radial-gradient(ellipse 70% 60% at 50% 38%,#0a1d31,#020509 72%);color:var(--cw);font:13.5px/1.5 "Avenir Next",sans-serif}
+.im-floor{position:absolute;left:-30%;right:-30%;bottom:0;height:380px;background:linear-gradient(rgba(111,220,255,.22) 1px,transparent 1px) 0 0/64px 64px,linear-gradient(90deg,rgba(111,220,255,.22) 1px,transparent 1px) 0 0/64px 64px;transform:perspective(520px) rotateX(64deg);transform-origin:center bottom;-webkit-mask:linear-gradient(to top,#000 10%,transparent 85%);mask:linear-gradient(to top,#000 10%,transparent 85%)}
+.im-glow{position:absolute;inset:0;background:radial-gradient(ellipse 36% 16% at 50% 100%,rgba(111,220,255,.28),transparent 70%)}
+.im-top{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;gap:20px;padding:0 18px;font:12px var(--cond);letter-spacing:.22em;color:var(--dim);border-bottom:1px solid rgba(111,220,255,.12)}
+.im-brand{color:var(--c);font-weight:600}
+.im-sys{color:var(--gr)}
+.im-sys::before{content:"●";margin-right:6px;animation:pulse 2s infinite}
+.im-clock{margin-left:auto}
+.im-stage{position:absolute;top:70px;left:34px;right:34px;bottom:34px;display:grid;grid-template-columns:286px 1fr 500px;gap:40px;perspective:1700px}
+.im-pane{position:relative;background:linear-gradient(160deg,rgba(111,220,255,.12),rgba(111,220,255,.03) 60%);border:1px solid rgba(111,220,255,.32);border-radius:4px;box-shadow:0 0 60px rgba(111,220,255,.10),inset 0 0 40px rgba(111,220,255,.05);backdrop-filter:blur(3px)}
+.im-pane::after{content:"";position:absolute;inset:-4px;pointer-events:none;--b:var(--c);background:linear-gradient(var(--b),var(--b)) left top/18px 2px no-repeat,linear-gradient(var(--b),var(--b)) left top/2px 18px no-repeat,linear-gradient(var(--b),var(--b)) right top/18px 2px no-repeat,linear-gradient(var(--b),var(--b)) right top/2px 18px no-repeat,linear-gradient(var(--b),var(--b)) left bottom/18px 2px no-repeat,linear-gradient(var(--b),var(--b)) left bottom/2px 18px no-repeat,linear-gradient(var(--b),var(--b)) right bottom/18px 2px no-repeat,linear-gradient(var(--b),var(--b)) right bottom/2px 18px no-repeat}
+.im-left{transform:rotateY(18deg);transform-origin:left center;padding:16px 14px;display:flex;flex-direction:column}
+.im-right{transform:rotateY(-18deg);transform-origin:right center;padding:14px 16px;display:flex;flex-direction:column}
+.im-mid{display:flex;flex-direction:column;padding:14px 24px 18px}
+.im-h{font:600 13px var(--cond);letter-spacing:.26em;color:var(--c);display:flex;justify-content:space-between;border-bottom:1px solid rgba(111,220,255,.2);padding-bottom:8px;margin-bottom:4px}
+.im-grp{font:11.5px var(--cond);letter-spacing:.26em;color:var(--dim);margin:12px 0 4px}
+.im-bay{display:grid;grid-template-columns:36px 1fr;gap:1px 12px;align-items:center;padding:8px;border-radius:3px}
+.im-ring{grid-row:span 2;width:34px;height:34px;border-radius:50%;background:conic-gradient(var(--rc) calc(var(--p)*1%),rgba(111,220,255,.12) 0);-webkit-mask:radial-gradient(circle,transparent 12px,#000 13px);mask:radial-gradient(circle,transparent 12px,#000 13px);filter:drop-shadow(0 0 4px var(--rc))}
+.im-bay.run .im-ring{animation:spin 2.2s linear infinite}
+.im-bay.inp .im-ring{animation:pulse 1.2s infinite}
+.im-bn{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.im-bs{font:10.5px Menlo,monospace;letter-spacing:.08em;color:var(--rc)}
+.im-bay.run{--rc:var(--c);--p:68}.im-bay.inp{--rc:var(--am);--p:50}.im-bay.done{--rc:var(--gr);--p:100}.im-bay.fail{--rc:var(--rd);--p:14}
+.im-bay.on{background:linear-gradient(90deg,rgba(111,220,255,.2),transparent);box-shadow:inset 2px 0 0 var(--c)}
+.im-core{margin-top:auto;display:flex;align-items:center;gap:14px;padding-top:14px;border-top:1px solid rgba(111,220,255,.15)}
+.im-reactor{width:82px;height:82px;flex:none;border-radius:50%;position:relative;background:radial-gradient(circle,#fff 0 9%,#c5f4ff 15%,var(--c) 24%,rgba(111,220,255,.15) 30%,transparent 33%),repeating-conic-gradient(rgba(111,220,255,.8) 0 9deg,transparent 9deg 18deg);-webkit-mask:radial-gradient(circle,#000 0 33%,transparent 34% 40%,#000 41% 60%,transparent 61% 66%,#000 67% 70%,transparent 71%);mask:radial-gradient(circle,#000 0 33%,transparent 34% 40%,#000 41% 60%,transparent 61% 66%,#000 67% 70%,transparent 71%);animation:spin 14s linear infinite}
+.im-corel{font:11px/1.6 var(--cond);letter-spacing:.2em;color:var(--dim)}
+.im-corel b{display:block;color:var(--c);font-size:13px;font-weight:600}
+.im-hud{display:grid;grid-template-columns:84px 1fr 84px;align-items:center;padding-bottom:12px;border-bottom:1px solid rgba(111,220,255,.16);margin-bottom:16px}
+.im-gw{position:relative;display:flex;flex-direction:column;align-items:center;font:10px var(--cond);letter-spacing:.22em;color:var(--dim);gap:2px}
+.im-g{width:62px;height:62px;border-radius:50%;background:conic-gradient(from 225deg,var(--gc) calc(var(--v)*2.7deg),rgba(111,220,255,.13) 0 270deg,transparent 0);-webkit-mask:radial-gradient(circle,transparent 24px,#000 25px 29px,transparent 30px);mask:radial-gradient(circle,transparent 24px,#000 25px 29px,transparent 30px);filter:drop-shadow(0 0 4px var(--gc))}
+.im-gv{position:absolute;top:21px;width:62px;text-align:center;font:600 15px var(--cond);color:var(--cw);letter-spacing:.04em}
+.im-title{text-align:center;font:600 19px var(--cond);letter-spacing:.14em;text-transform:uppercase;text-shadow:0 0 14px rgba(111,220,255,.6)}
+.im-title i{font-style:normal;color:var(--c);margin:0 10px;font-weight:400}
+.im-sub{text-align:center;font:11px Menlo,monospace;color:var(--dim);margin-top:3px}
+.im-sub b{color:var(--gr);font-weight:normal}
+.im-msgs{flex:1;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+.im-lab{font:10px Menlo,monospace;letter-spacing:.22em;color:var(--dim);margin-bottom:4px}
+.im-user{align-self:flex-end;max-width:440px;text-align:right}
+.im-ub{text-align:left;border:1px solid rgba(111,220,255,.38);background:rgba(111,220,255,.08);padding:10px 14px;border-radius:3px}
+.im-work{font:11px Menlo,monospace;color:var(--dim);letter-spacing:.03em}
+.im-work::before{content:"◉ PROCESS LOG › ";color:var(--c)}
+.im-ai{display:grid;grid-template-columns:46px 1fr;gap:14px}
+.im-av{display:flex;flex-direction:column;align-items:center;gap:7px;padding-top:2px}
+.im-av .r{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,#fff 0 14%,#bff3ff 24%,var(--c) 44%,#0b3a52 66%);box-shadow:0 0 0 2px #03101c,0 0 0 3px rgba(111,220,255,.6),0 0 18px rgba(111,220,255,.8)}
+.im-wave{display:flex;gap:2px;height:16px;align-items:center}
+.im-wave i{width:2px;height:4px;background:var(--c);border-radius:1px;animation:imwv 1s ease-in-out infinite}
+.im-wave i:nth-child(2){animation-delay:.15s}.im-wave i:nth-child(3){animation-delay:.3s}.im-wave i:nth-child(4){animation-delay:.45s}.im-wave i:nth-child(5){animation-delay:.6s}
+@keyframes imwv{50%{height:15px}}
+.im-ai .lab{color:var(--c)}
+.im-ai p{margin:0 0 10px;line-height:1.6;color:#d3f2fc;border-left:1px solid rgba(111,220,255,.35);padding-left:12px}
+.im-ai code{font:12px Menlo,monospace;color:var(--am)}
+.im-ai pre{margin:0 0 10px 13px;position:relative;background:rgba(0,8,14,.85);border:1px solid rgba(111,220,255,.18);padding:12px 16px;font:11.5px/1.6 Menlo,monospace;color:#c4ebf8}
+.im-ai .k{color:var(--c)}.im-ai .f{color:var(--am)}.im-ai .s{color:#9ff2c8}.im-ai .c{color:#3f6273}
+.im-comp{margin-top:14px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;border:1px solid rgba(111,220,255,.45);border-radius:32px;padding:10px 10px 10px 20px;background:rgba(111,220,255,.06);box-shadow:0 0 34px rgba(111,220,255,.16)}
+.im-comp .im-wave{height:26px}
+.im-comp .im-wave i{width:3px}
+.im-cin{color:#8fbccf;font-size:14.5px}
+.im-chips{margin-top:4px;font:10.5px Menlo,monospace;letter-spacing:.1em;color:var(--dim)}
+.im-chips span{color:var(--c);margin-right:14px}
+.im-send{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle,#fff 0 12%,#c5f4ff 20%,var(--c) 40%,#0b3a52 64%);box-shadow:0 0 0 3px #03101c,0 0 0 4px rgba(111,220,255,.7),0 0 24px rgba(111,220,255,.8)}
+.im-tabs{display:flex;gap:16px;font:12.5px var(--cond);letter-spacing:.2em;color:var(--dim);border-bottom:1px solid rgba(111,220,255,.18);padding-bottom:8px}
+.im-tabs .on{color:var(--c);text-shadow:0 0 10px rgba(111,220,255,.7)}
+.im-url{font:11px Menlo,monospace;color:var(--dim);margin:8px 0 0}
+.im-url b{color:var(--gr);font-weight:normal}
+.im-proj{flex:1;position:relative;margin-top:8px}
+.im-site{position:absolute;inset:34px 36px 46px;overflow:hidden;border:1px solid rgba(111,220,255,.6);box-shadow:0 0 40px rgba(111,220,255,.35);transform:perspective(900px) rotateX(7deg);transform-origin:center bottom}
+.im-site::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(111,220,255,.08) 0 1px,transparent 1px 3px),linear-gradient(transparent 0 40%,rgba(111,220,255,.18) 50%,transparent 60%) 0 0/100% 300% no-repeat;animation:imscan 4s linear infinite}
+@keyframes imscan{from{background-position:0 0,0 120%}to{background-position:0 0,0 -20%}}
+.im-beam{position:absolute;left:12%;right:12%;bottom:0;height:46px;background:linear-gradient(to top,rgba(111,220,255,.35),transparent);clip-path:polygon(42% 100%,58% 100%,100% 0,0 0);opacity:.7}
+.im-call{position:absolute;font:10.5px Menlo,monospace;color:var(--c);background:rgba(2,10,18,.9);border:1px solid rgba(111,220,255,.55);padding:3px 8px;white-space:nowrap;z-index:2}
+.im-call b{color:var(--cw);font-weight:normal}
+.im-call::before{content:"";position:absolute;top:50%;height:1px;width:var(--lw);background:var(--c)}
+.im-call::after{content:"";position:absolute;top:calc(50% - 3px);width:6px;height:6px;border-radius:50%;background:var(--c);box-shadow:0 0 6px var(--c)}
+.im-call.l::before{left:100%}.im-call.l::after{left:calc(100% + var(--lw))}
+.im-call.r::before{right:100%}.im-call.r::after{right:calc(100% + var(--lw))}
+.im-stats{display:flex;justify-content:space-between;font:10.5px Menlo,monospace;color:var(--dim);border-top:1px solid rgba(111,220,255,.16);padding-top:8px;letter-spacing:.06em}
+.im-stats b{color:var(--gr);font-weight:normal}
+</style>
+<div class="c-head">
+  <div>
+    <div class="kicker">Iron Man · Dark</div>
+    <h2>Workshop</h2>
+    <p>T3 becomes a holographic workbench. The three columns turn into glass panes floating in 3D over a glowing floor grid, angled toward you like projections around a workstation. Threads are suit bays with power rings, the assistant talks through an arc-reactor voice readout, and the browser is a hologram with callouts pinned to it.</p>
+    <p class="real"><b>Doable with CSS:</b> the 3D-angled panes, floor grid, power rings colored by state, voice-style composer, hologram frame and scan line over the browser. <b>Decorative:</b> callouts on the page (CSS can't see inside the browser), gauge values and render stats. The angled browser pane needs a real-app check, since tilting it may affect clicking.</p>
+  </div>
+  <dl class="map">
+    <dt>Whole app</dt><dd>Three floating glass panes in perspective over a holotable floor</dd>
+    <dt>Sidebar</dt><dd>Suit bays: each thread gets a "Mk" number and a power ring that fills, spins or flashes by state</dd>
+    <dt>Header</dt><dd>Thread title in HUD brackets between two arc gauges (context and usage)</dd>
+    <dt>Chat</dt><dd>Assistant speaks through an arc-reactor avatar with a live waveform</dd>
+    <dt>Composer</dt><dd>A rounded voice-command bar with a waveform and an arc-reactor send button</dd>
+    <dt>Right panel</dt><dd>Browser projected as a tilted hologram with callouts and a projector beam</dd>
+  </dl>
+</div>
+<div class="win im-win">
+  <div class="im-floor"></div><div class="im-glow"></div>
+  <div class="im-top"><div class="lights"><i></i><i></i><i></i></div><span class="im-brand">T3 · WORKSHOP</span><span class="im-sys">ALL SYSTEMS NOMINAL</span><span class="im-clock">SESSION 08:31 · OPUS 5.5 · FULL ACCESS</span></div>
+  <div class="im-stage">
+    <aside class="im-pane im-left">
+      <div class="im-h">SUIT BAYS <span>06</span></div>
+      <div class="im-grp">WEB-APP</div>
+      <div class="im-bay run on"><span class="im-ring"></span><div class="im-bn">Refactor auth middleware</div><div class="im-bs">MK 01 · ONLINE</div></div>
+      <div class="im-bay inp"><span class="im-ring"></span><div class="im-bn">Add dark mode toggle</div><div class="im-bs">MK 02 · STANDBY</div></div>
+      <div class="im-bay done"><span class="im-ring"></span><div class="im-bn">Fix flaky e2e test</div><div class="im-bs">MK 03 · COMPLETE · 1H</div></div>
+      <div class="im-grp">API-SERVER</div>
+      <div class="im-bay fail"><span class="im-ring"></span><div class="im-bn">Migrate to Postgres 17</div><div class="im-bs">MK 04 · DAMAGED</div></div>
+      <div class="im-bay run"><span class="im-ring"></span><div class="im-bn">Tune rate limiter</div><div class="im-bs">MK 05 · CHARGING</div></div>
+      <div class="im-bay done"><span class="im-ring"></span><div class="im-bn">Add OpenAPI docs</div><div class="im-bs">MK 06 · COMPLETE · 1D</div></div>
+      <div class="im-core"><div class="im-reactor"></div><div class="im-corel"><b>CORE STABLE</b>2 ACTIVE<br>1 STANDBY · 1 DAMAGED</div></div>
+    </aside>
+    <main class="im-pane im-mid">
+      <div class="im-hud">
+        <div class="im-gw"><div class="im-g" style="--v:68;--gc:#6fdcff"></div><span class="im-gv">68</span>CONTEXT</div>
+        <div><div class="im-title"><i>[</i>Refactor auth middleware<i>]</i></div><div class="im-sub">feat/auth-refactor · <b>+142</b> −38 · 24/24 tests</div></div>
+        <div class="im-gw"><div class="im-g" style="--v:41;--gc:#ffb23f"></div><span class="im-gv">41</span>USAGE</div>
+      </div>
+      <div class="im-msgs">
+        <div class="im-user"><div class="im-lab">YOU</div><div class="im-ub">Split the session check out of the auth middleware and add tests for expired tokens. Check the login page after.</div></div>
+        <div class="im-work">Read 4 files · Ran 2 commands · Edited auth/session.ts</div>
+        <div class="im-ai">
+          <div class="im-av"><div class="r"></div><div class="im-wave"><i></i><i></i><i></i><i></i><i></i></div></div>
+          <div>
+            <div class="im-lab lab">SYS // RESPONSE</div>
+            <p>Done. I moved the check into a new <code>verifySession()</code> helper and covered the expired-token case. The login page on the projection now redirects correctly.</p>
+<pre><span class="c">// auth/session.ts</span>
+<span class="k">export async function</span> <span class="f">verifySession</span>(req: Request) {
+  <span class="k">const</span> token = req.cookies.<span class="f">get</span>(<span class="s">"sid"</span>)
+  <span class="k">if</span> (!token) <span class="k">throw new</span> <span class="f">AuthError</span>(<span class="s">"missing session"</span>)
+  <span class="k">return</span> sessions.<span class="f">verify</span>(token)
+}</pre>
+            <p>All 24 tests pass. Shall I open the PR?</p>
+          </div>
+        </div>
+      </div>
+      <div class="im-comp">
+        <div class="im-wave"><i></i><i></i><i></i><i></i><i></i></div>
+        <div><div class="im-cin">Say or type a command… @ to target a file</div><div class="im-chips"><span>◉ OPUS 5.5</span><span>◉ FULL ACCESS</span><span>+ ATTACH</span></div></div>
+        <div class="im-send"></div>
+      </div>
+    </main>
+    <section class="im-pane im-right">
+      <div class="im-tabs"><span class="on">HOLO · BROWSER</span><span>SCHEMATIC · DIFF</span><span>FILES</span></div>
+      <div class="im-url">localhost:3000/login · <b>200 OK</b></div>
+      <div class="im-proj">
+        <div class="im-site"><div class="site"><div class="site-nav"><b>Acme</b><span>Product</span><span>Pricing</span><span>Docs</span></div><div class="site-body"><div class="site-card"><h3>Welcome back</h3><div class="sub">Sign in to your account</div><label>Email</label><div class="site-in">you@example.com</div><label>Password</label><div class="site-in">••••••••••</div><div class="site-btn">Sign in</div><div class="site-foot">Forgot password?</div></div></div></div></div>
+        <div class="im-beam"></div>
+        <div class="im-call l" style="left:0;top:16px;--lw:44px"><b>FORM</b> #login · 2 fields</div>
+        <div class="im-call r" style="right:0;top:52%;--lw:30px"><b>CTA</b> POST /session · 200</div>
+        <div class="im-call l" style="left:0;bottom:66px;--lw:40px"><b>LCP</b> 0.8s · CLS 0</div>
+      </div>
+      <div class="im-stats"><span>RENDER <b>16ms</b></span><span>REQUESTS <b>3</b></span><span>CONSOLE <b>0 ERR</b></span></div>
+    </section>
+  </div>
+</div>
+</section>
+<section class="concept" id="diablo">
+<style>
+.d-win{--gold:#8a6d3b;--gold2:#c9a25a;--tx:#cdbb98;--dim:#7a6a55;--leg:#d0702f;--rare:#e8d84f;--set:#4fc04a;--mag:#8585ff;--red:#c4231d;--cop:Copperplate,Palatino,serif;background:var(--noise),radial-gradient(ellipse 50% 32% at 46% 100%,rgba(190,70,20,.25),transparent 70%),#0d0907;color:var(--tx);font:14px/1.5 Palatino,"Book Antiqua",Georgia,serif}
+.d-frame{border:1px solid var(--gold);box-shadow:0 0 0 1px #000,inset 0 0 0 3px #0a0705,inset 0 0 0 4px #3a2c18,0 10px 30px rgba(0,0,0,.6)}
+.d-top{height:36px;display:flex;align-items:center;gap:16px;padding:0 16px;border-bottom:1px solid #2a2018;background:linear-gradient(#1a130e,#0f0b09)}
+.d-brand{font:13px var(--cop);letter-spacing:.16em;color:var(--gold2)}
+.d-body{position:absolute;top:36px;left:0;right:0;bottom:0;display:grid;grid-template-columns:308px 1fr 500px}
+.d-stash{margin:14px 6px 14px 14px;display:flex;flex-direction:column;background:var(--noise),linear-gradient(#18120d,#0f0a07)}
+.d-sh{text-align:center;font:16px var(--cop);letter-spacing:.24em;color:var(--gold2);padding:12px 0 8px;text-shadow:0 2px 0 #000}
+.d-tabs{display:flex;gap:4px;padding:2px 12px 0}
+.d-tabs span{flex:1;text-align:center;font:11px var(--cop);letter-spacing:.08em;padding:6px 4px 5px;border:1px solid #3a2c1e;border-bottom:none;background:#0b0806;color:var(--dim)}
+.d-tabs span.on{background:#241910;color:var(--gold2);border-color:var(--gold)}
+.d-tabs span:last-child{flex:0 0 30px}
+.d-items{border-top:1px solid var(--gold);margin:0 12px;padding:10px 0;display:flex;flex-direction:column;gap:5px}
+.d-item{display:grid;grid-template-columns:46px 1fr;gap:12px;align-items:center;padding:6px;border:1px solid transparent}
+.d-slot{width:46px;height:46px;display:grid;place-items:center;font-size:21px;background:radial-gradient(circle,color-mix(in srgb,var(--rc) 28%,#000),#050302 72%);border:1px solid color-mix(in srgb,var(--rc) 55%,#000);color:var(--rc);box-shadow:inset 0 0 12px rgba(0,0,0,.9)}
+.d-in{font-weight:700;font-size:14px;line-height:1.2;color:var(--rc)}
+.d-it{font-size:12px;color:var(--dim)}
+.d-ia{font-size:12px;color:var(--mag)}
+.d-item.leg{--rc:var(--leg)}.d-item.rare{--rc:var(--rare)}.d-item.set{--rc:var(--set)}.d-item.brk{--rc:#c0453c}.d-item.com{--rc:#e3dccd}
+.d-item.on{background:linear-gradient(90deg,rgba(208,112,47,.18),transparent);border-color:rgba(208,112,47,.5)}
+.d-item.on .d-slot{animation:dglow 2.2s ease-in-out infinite}
+@keyframes dglow{50%{box-shadow:inset 0 0 12px rgba(0,0,0,.9),0 0 16px rgba(208,112,47,.8)}}
+.d-leg{margin:auto 12px 0;padding:10px 0 4px;border-top:1px solid #2e2318;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;font-size:11.5px}
+.d-gold{text-align:center;font:12px var(--cop);letter-spacing:.06em;color:var(--gold2);padding:8px 0 12px}
+.d-conv{display:flex;flex-direction:column;min-width:0;padding:10px 14px 6px;position:relative}
+.d-zone{text-align:center;padding:6px 0 12px}
+.d-zk{font:11px var(--cop);letter-spacing:.42em;color:var(--dim)}
+.d-zt{font:26px/1.15 var(--cop);letter-spacing:.06em;color:#e8c98c;text-shadow:0 2px 0 #000,0 0 22px rgba(208,112,47,.4);display:flex;align-items:center;justify-content:center;gap:16px}
+.d-zt::before,.d-zt::after{content:"";width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--gold2))}
+.d-zt::after{transform:scaleX(-1)}
+.d-zs{font:italic 13px Palatino,serif;color:var(--dim)}
+.d-msgs{flex:1;display:flex;flex-direction:column;gap:12px;overflow:hidden;padding:0 6px}
+.d-spk{font:12px var(--cop);letter-spacing:.12em;color:var(--gold2);margin-bottom:3px}
+.d-you{align-self:flex-end;max-width:440px;background:rgba(0,0,0,.5);border:1px solid #3a2c1e;padding:9px 14px}
+.d-work{font:italic 13px Palatino,serif;color:#8f7f68;text-align:center}
+.d-ai{background:linear-gradient(#1b140f,#130d09);padding:14px 20px 6px}
+.d-ai .d-spk{color:var(--leg)}
+.d-ai p{margin:0 0 10px;line-height:1.6}
+.d-ai p.first::first-letter{float:left;font:46px/.82 var(--cop);color:var(--leg);margin:5px 9px 0 0;text-shadow:0 0 14px rgba(208,112,47,.6)}
+.d-ai code{font:12px Menlo,monospace;color:var(--rare)}
+.d-ai pre{margin:0 0 10px;background:#070404;border:1px solid #3a2c1e;box-shadow:inset 0 0 0 1px #000;padding:10px 14px;font:11.5px/1.6 Menlo,monospace;color:#cdbb98}
+.d-ai .k{color:var(--leg)}.d-ai .f{color:var(--rare)}.d-ai .s{color:var(--set)}.d-ai .c{color:#6a5a48;font-style:italic}
+.d-hud{display:grid;grid-template-columns:112px 1fr 112px;align-items:end;gap:0;margin:10px -14px 0;padding:0 8px}
+.d-orbw{display:flex;flex-direction:column;align-items:center;gap:2px;padding-bottom:8px;position:relative;z-index:2}
+.d-orbw label{font:10.5px var(--cop);letter-spacing:.14em;color:var(--dim)}
+.d-orb{width:104px;height:104px;border-radius:50%;position:relative;overflow:hidden;border:3px solid #4a3a26;box-shadow:0 0 0 2px #000,0 0 0 5px #6b5333,0 0 0 6px #000,inset 0 0 24px #000;background:#0a0606}
+.d-liq{position:absolute;left:0;right:0;bottom:0;height:var(--lv);background:radial-gradient(circle at 40% 10%,var(--hi),var(--lo) 75%)}
+.d-liq::before{content:"";position:absolute;left:-10%;right:-10%;top:-5px;height:10px;border-radius:50%;background:var(--hi);opacity:.55;animation:dwave 3s ease-in-out infinite}
+@keyframes dwave{50%{transform:translateX(6px) scaleY(.7)}}
+.d-orb.hp{--hi:#ff6a5a;--lo:#5e0707;--lv:68%}
+.d-orb.mp{--hi:#8b97ff;--lo:#0c1066;--lv:41%}
+.d-orb::after{content:"";position:absolute;left:18%;top:10%;width:42%;height:26%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.35),transparent 70%)}
+.d-orb span{position:absolute;inset:0;display:grid;place-items:center;font:700 16px Palatino,serif;color:#fff;text-shadow:0 1px 3px #000;z-index:2}
+.d-mid{background:var(--noise),linear-gradient(#2c2219,#16100b);border:1px solid #4a3a26;border-bottom:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 0 1px #000;padding:8px 12px 10px;margin:0 -10px;position:relative;z-index:1}
+.d-xpl{display:flex;justify-content:space-between;font:10px var(--cop);letter-spacing:.12em;color:var(--dim);margin-bottom:3px}
+.d-xp{height:7px;background:#0a0705;border:1px solid #3a2c1e;margin-bottom:9px;position:relative}
+.d-xp i{position:absolute;inset:0;width:62%;background:linear-gradient(90deg,#6a2f0c,#d0702f);box-shadow:0 0 8px rgba(208,112,47,.6)}
+.d-chat{background:#0a0705;border:1px solid #5a4529;padding:9px 12px;color:#a8977a;font-style:italic;margin-bottom:9px;box-shadow:inset 0 0 12px #000}
+.d-skills{display:flex;gap:6px;justify-content:center}
+.d-sk{width:48px;height:48px;position:relative;background:radial-gradient(circle,#2c2016,#0a0705);border:1px solid #6b5333;box-shadow:inset 0 0 10px #000,0 0 0 1px #000;display:grid;place-items:center;font-size:18px;color:var(--gold2);padding-bottom:8px}
+.d-sk b{position:absolute;left:4px;top:1px;font:10px Palatino,serif;color:#fff}
+.d-sk em{position:absolute;bottom:2px;left:0;right:0;text-align:center;font:8px var(--cop);font-style:normal;color:var(--dim);letter-spacing:.03em}
+.d-sk.cast{border-color:var(--leg);color:var(--leg);box-shadow:inset 0 0 10px #000,0 0 14px rgba(208,112,47,.7)}
+.d-sk.gap{margin-left:10px}
+.d-panel{padding:14px 14px 14px 6px;display:flex;flex-direction:column;min-width:0}
+.d-pt{display:flex;gap:4px}
+.d-pt span{font:11px var(--cop);letter-spacing:.1em;padding:6px 14px 5px;border:1px solid #3a2c1e;border-bottom:none;background:#0b0806;color:var(--dim)}
+.d-pt span.on{background:#241910;color:var(--gold2);border-color:var(--gold)}
+.d-cmp{flex:1;display:flex;flex-direction:column;gap:12px;padding:14px;background:rgba(0,0,0,.35);border:1px solid var(--gold);overflow:hidden}
+.d-tt{background:rgba(7,4,4,.97);padding:12px 18px;text-align:center}
+.d-tt.small{margin:0 34px;opacity:.85}
+.d-eq{font:10.5px var(--cop);letter-spacing:.16em;color:var(--dim);margin-bottom:4px}
+.d-tn{font:19px var(--cop);letter-spacing:.04em}
+.d-tn.leg{color:var(--leg);text-shadow:0 0 14px rgba(208,112,47,.45)}.d-tn.mag{color:var(--mag);font-size:16px}
+.d-tl{font-size:12.5px;color:var(--leg)}
+.d-tt.small .d-tl{color:var(--mag)}
+.d-sep{height:1px;margin:9px 40px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.d-st{font-size:13.5px;line-height:1.55}
+.d-st.g{color:var(--set)}.d-st.r{color:#e0544c}.d-st.m{color:var(--mag)}.d-st.w{color:#e8e0d0}
+.d-diff{margin:10px 0 4px;text-align:left;background:#040202;border:1px solid #2a2018;font:11.5px/1.65 Menlo,monospace;padding:6px 0}
+.d-dl{padding:0 10px;white-space:pre;color:#a8977a}
+.d-dl.a{background:rgba(79,192,74,.12);color:#a6e6a1}
+.d-dl.x{background:rgba(196,35,29,.15);color:#f0a29c}
+.d-dl i{font-style:normal;color:#5a4a38;margin-right:12px}
+.d-sock{margin-top:8px;color:var(--dim);font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:8px}
+.d-sock::before{content:"";width:13px;height:13px;border-radius:50%;border:1px solid var(--dim);background:radial-gradient(circle,#1a120c,#000)}
+.d-hint{margin-top:6px;color:#e8e0d0;font-size:12px}
+.d-hint b{color:var(--set);font-weight:normal}
+</style>
+<div class="c-head">
+  <div>
+    <div class="kicker">Diablo · Dark</div>
+    <h2>Sanctuary</h2>
+    <p>T3 becomes an action-RPG screen. The composer moves into a stone skill bar flanked by a health orb and a mana orb. The sidebar becomes your stash with a tab per project and threads as loot named in rarity colors. Each thread opens like entering a new zone, and the diff becomes an item comparison: what's equipped on main versus the new drop.</p>
+    <p class="real"><b>Doable with CSS:</b> the bottom HUD around the composer, project tabs, rarity colors by thread state, zone banner, drop cap, item-tooltip frames around the diff. <b>Decorative:</b> orb fill levels (context and usage), the progress bar, and the "+9 tests" line. Diff lines can be recolored but not restyled.</p>
+  </div>
+  <dl class="map">
+    <dt>Sidebar</dt><dd>Stash: projects are tabs, threads are items. Legendary = running, Rare = needs you, Set = done, Broken = failed, Common = idle</dd>
+    <dt>Header</dt><dd>Zone banner: "Entering · Refactor Auth Middleware"</dd>
+    <dt>Chat</dt><dd>Assistant replies on a dark journal page with a drop cap; tool calls as italic narration</dd>
+    <dt>Composer</dt><dd>Stone skill bar: health orb (context), mana orb (usage), progress bar for the current run, skill slots for attach, model, access, plan and send ("Cast")</dd>
+    <dt>Right panel</dt><dd>Diff as an item comparison: "Currently equipped · main" over the new legendary, with an empty socket waiting for review</dd>
+  </dl>
+</div>
+<div class="win d-win">
+  <div class="d-top"><div class="lights"><i></i><i></i><i></i></div><span class="d-brand">T3 · SANCTUARY</span></div>
+  <div class="d-body">
+    <aside class="d-stash d-frame">
+      <div class="d-sh">STASH</div>
+      <div class="d-tabs"><span class="on">WEB-APP</span><span>API-SERVER</span><span>+</span></div>
+      <div class="d-items">
+        <div class="d-item leg on"><div class="d-slot">✦</div><div><div class="d-in">Refactor Auth Middleware</div><div class="d-it">Legendary Refactor</div><div class="d-ia">Running · now</div></div></div>
+        <div class="d-item rare"><div class="d-slot">❖</div><div><div class="d-in">Add Dark Mode Toggle</div><div class="d-it">Rare Feature</div><div class="d-ia">Awaiting your input</div></div></div>
+        <div class="d-item set"><div class="d-slot">◈</div><div><div class="d-in">Fix Flaky E2E Test</div><div class="d-it">Set Fix · 1h</div><div class="d-ia">Completed</div></div></div>
+        <div class="d-item brk"><div class="d-slot">✕</div><div><div class="d-in">Upgrade to React 20</div><div class="d-it">Broken Upgrade · 3h</div><div class="d-ia" style="color:#c0453c">Durability 0 / 40</div></div></div>
+        <div class="d-item com"><div class="d-slot">◇</div><div><div class="d-in">Write Onboarding Docs</div><div class="d-it">Common Draft · 2d</div></div></div>
+      </div>
+      <div class="d-leg">
+        <span style="color:#d0702f">Legendary · running</span><span style="color:#e8d84f">Rare · needs you</span>
+        <span style="color:#4fc04a">Set · done</span><span style="color:#8585ff">Magic · update</span>
+        <span style="color:#c0453c">Broken · failed</span><span style="color:#e3dccd">Common · idle</span>
+      </div>
+      <div class="d-gold">173 settled · 1 snoozed</div>
+    </aside>
+    <main class="d-conv">
+      <div class="d-zone"><div class="d-zk">ENTERING</div><div class="d-zt">Refactor Auth Middleware</div><div class="d-zs">feat/auth-refactor · 08:31</div></div>
+      <div class="d-msgs">
+        <div class="d-you"><div class="d-spk">You</div>Split the session check out of the auth middleware and add tests for expired tokens.</div>
+        <div class="d-work">— read 4 files · ran 2 commands · edited auth/session.ts —</div>
+        <div class="d-ai d-frame">
+          <div class="d-spk">The Scribe</div>
+          <p class="first">Done. I moved the check into a new <code>verifySession()</code> helper and covered the expired-token case.</p>
+<pre><span class="c">// auth/session.ts</span>
+<span class="k">export async function</span> <span class="f">verifySession</span>(req: Request) {
+  <span class="k">const</span> token = req.cookies.<span class="f">get</span>(<span class="s">"sid"</span>)
+  <span class="k">if</span> (!token) <span class="k">throw new</span> <span class="f">AuthError</span>(<span class="s">"missing session"</span>)
+  <span class="k">return</span> sessions.<span class="f">verify</span>(token)
+}</pre>
+          <p>All 24 tests pass. Shall I open the PR?</p>
+        </div>
+      </div>
+      <div class="d-hud">
+        <div class="d-orbw"><div class="d-orb hp"><div class="d-liq"></div><span>68%</span></div><label>CONTEXT</label></div>
+        <div class="d-mid">
+          <div class="d-xpl"><span>RUNNING · RUN TESTS</span><span>62%</span></div>
+          <div class="d-xp"><i></i></div>
+          <div class="d-chat">Speak your command… @ to mention files</div>
+          <div class="d-skills">
+            <div class="d-sk"><b>1</b>✚<em>ATTACH</em></div>
+            <div class="d-sk"><b>2</b>◈<em>OPUS 5.5</em></div>
+            <div class="d-sk"><b>3</b>❂<em>ACCESS</em></div>
+            <div class="d-sk"><b>4</b>✎<em>PLAN</em></div>
+            <div class="d-sk gap cast"><b>↵</b>➶<em>CAST</em></div>
+          </div>
+        </div>
+        <div class="d-orbw"><div class="d-orb mp"><div class="d-liq"></div><span>41%</span></div><label>USAGE</label></div>
+      </div>
+    </main>
+    <section class="d-panel">
+      <div class="d-pt"><span class="on">COMPARE · DIFF</span><span>VIEW · BROWSER</span><span>FILES</span></div>
+      <div class="d-cmp">
+        <div class="d-tt small d-frame"><div class="d-eq">CURRENTLY EQUIPPED · MAIN</div><div class="d-tn mag">auth/middleware.ts</div><div class="d-tl">Magic TypeScript Module</div><div class="d-st w">212 Lines · 15 Tests</div></div>
+        <div class="d-tt d-frame">
+          <div class="d-tn leg">auth/session.ts</div>
+          <div class="d-tl">Legendary TypeScript Module</div>
+          <div class="d-sep"></div>
+          <div class="d-st g">+142 Lines Added</div>
+          <div class="d-st r">−38 Lines Removed</div>
+          <div class="d-st m">+9 Tests · Resist Expired Tokens</div>
+          <div class="d-diff">
+            <div class="d-dl"><i>12</i> export async function verifySession(req: Request) {</div>
+            <div class="d-dl x"><i>13</i>-  const user = await legacyCheck(req)</div>
+            <div class="d-dl a"><i>13</i>+  const token = req.cookies.get("sid")</div>
+            <div class="d-dl a"><i>14</i>+  if (!token) throw new AuthError("missing session")</div>
+            <div class="d-dl a"><i>15</i>+  if (isExpired(token)) throw new AuthError("expired")</div>
+            <div class="d-dl"><i>16</i>   return sessions.verify(token)</div>
+            <div class="d-dl"><i>17</i> }</div>
+          </div>
+          <div class="d-sock">Empty Socket · awaiting review</div>
+          <div class="d-hint">Right-click to equip <b>(merge into main)</b></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</section>
+<section class="concept" id="warcraft">
+<style>
+.w-win{--acc:#2a5bb5;--acc2:#7fa8ff;--fr1:#5b3b1e;--fr2:#2e1d0e;--gold:#d8b25a;--yel:#ffd100;--page:#ead9b0;--ink:#3a2a14;--ink2:#7a6440;--sel:rgba(42,91,181,.22);--chat:rgba(10,18,40,.82);--sky1:#22385f;--sky2:#0d1426;--btn1:#b8231a;--btn2:#6b0d08;--serif:Palatino,"Book Antiqua",Georgia,serif;background:radial-gradient(ellipse 70% 50% at 60% 0%,var(--sky1),transparent 70%),radial-gradient(ellipse 60% 40% at 10% 100%,rgba(40,70,40,.5),transparent 70%),linear-gradient(var(--sky2),#07090f);color:#f1e6c8;font:14px/1.5 var(--serif)}
+.w-win[data-variant="horde"]{--acc:#b3261e;--acc2:#ff8a6a;--fr1:#3d3532;--fr2:#1a1513;--gold:#d9a441;--page:#2b1e17;--ink:#ead6ad;--ink2:#a88d68;--sel:rgba(179,38,30,.3);--chat:rgba(40,10,6,.85);--sky1:#5a1d12;--sky2:#1d0d0a;--btn1:#8a1a12;--btn2:#3a0805}
+.w-frame{border:5px solid var(--fr1);box-shadow:0 0 0 1px #000,inset 0 0 0 1px var(--gold),0 0 0 2px var(--gold),0 0 0 3px #000,0 12px 30px rgba(0,0,0,.55)}
+.w-top{height:34px;display:flex;align-items:center;gap:14px;padding:0 14px;background:linear-gradient(var(--fr1),var(--fr2));border-bottom:2px solid var(--gold)}
+.w-top span{font:700 13px var(--serif);color:var(--yel);text-shadow:0 1px 0 #000}
+.w-top em{margin-left:auto;font-style:normal;font-size:12px;color:#d9c9a0}
+.w-body{position:absolute;top:34px;left:0;right:0;bottom:0;display:grid;grid-template-columns:318px 1fr 486px;gap:18px;padding:12px 16px 14px}
+.w-left{display:flex;flex-direction:column;gap:12px;min-width:0}
+.w-unit{display:flex;align-items:center;height:72px}
+.w-por{width:68px;height:68px;flex:none;border-radius:50%;display:grid;place-items:center;font:700 22px var(--serif);color:var(--yel);background:radial-gradient(circle at 40% 35%,var(--acc2),var(--acc) 55%,#0a0a14);border:3px solid var(--gold);box-shadow:0 0 0 2px #000,0 4px 10px rgba(0,0,0,.6);position:relative;z-index:2;text-shadow:0 2px 0 #000}
+.w-lvl{position:absolute;left:-4px;bottom:-4px;width:24px;height:24px;border-radius:50%;background:#1a1208;border:2px solid var(--gold);display:grid;place-items:center;font:700 10px var(--serif);color:var(--yel)}
+.w-plate{flex:1;margin-left:-14px;padding:5px 10px 6px 22px;background:rgba(0,0,0,.72);border:2px solid var(--gold);border-left:none;border-radius:0 6px 6px 0;box-shadow:0 0 0 1px #000}
+.w-nm{font:700 13.5px var(--serif);color:var(--yel);text-shadow:0 1px 0 #000;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w-bar{height:12px;border:1px solid #000;background:#111;position:relative;margin-top:2px;font:10px/11px var(--serif);color:#fff;text-align:center;text-shadow:0 1px 0 #000}
+.w-bar i{position:absolute;left:0;top:0;bottom:0;width:var(--v)}
+.w-bar span{position:relative}
+.w-bar.hp i{background:linear-gradient(#3fd13f,#138a13)}
+.w-bar.mp i{background:linear-gradient(#4f7dff,#1a3aa8)}
+.w-bar.cast{height:16px;font-size:11px;line-height:15px;border:1px solid var(--gold)}
+.w-bar.cast i{background:linear-gradient(#ffcf3f,#c98a00);box-shadow:4px 0 8px rgba(255,220,120,.9)}
+.w-book{flex:1;display:flex;flex-direction:column;background:var(--noise),radial-gradient(ellipse at center,transparent 55%,rgba(90,55,15,.3)),var(--page);color:var(--ink);min-height:0}
+.w-bt{margin:-5px -5px 0;padding:7px 0 6px;text-align:center;font:700 15px var(--serif);color:var(--yel);background:linear-gradient(var(--fr1),var(--fr2));border-bottom:2px solid var(--gold);text-shadow:0 1px 0 #000}
+.w-ql{padding:8px 12px;display:flex;flex-direction:column;gap:1px}
+.w-zone{font:700 13px var(--serif);color:var(--ink2);margin:8px 0 3px;display:flex;gap:6px}
+.w-zone::before{content:"−";width:14px;text-align:center;border:1px solid var(--ink2);border-radius:3px;line-height:13px;font-size:12px}
+.w-q{display:grid;grid-template-columns:16px 1fr auto;gap:6px;align-items:center;padding:4px 6px 4px 4px;border-radius:2px}
+.w-mk{font:900 16px/1 Georgia,serif;text-align:center;text-shadow:0 1px 0 #000,0 0 3px rgba(0,0,0,.6)}
+.w-mk.y{color:var(--yel)}.w-mk.g{color:#a8a8a8}.w-mk.r{color:#ff3b30}
+.w-qt{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w-qa{font-size:11.5px;color:var(--ink2)}
+.w-q.on{background:var(--sel);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--acc) 60%,transparent)}
+.w-obj{grid-column:2/-1;font-size:12px;color:var(--ink2);line-height:1.35}
+.w-obj.done{color:#3f7d1f}
+.w-win[data-variant="horde"] .w-obj.done{color:#8fd16a}
+.w-fail{color:#c0281e;font-weight:700;font-size:11.5px}
+.w-shelf{margin-top:auto;padding:8px 14px 10px;border-top:1px solid color-mix(in srgb,var(--ink2) 40%,transparent);font-size:12px;color:var(--ink2);display:flex;justify-content:space-between}
+.w-mid{display:flex;flex-direction:column;min-width:0}
+.w-target{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.w-target .w-unit{flex:1;flex-direction:row-reverse}
+.w-target .w-plate{margin-left:0;margin-right:-14px;padding:5px 22px 6px 10px;border:2px solid var(--gold);border-right:none;border-radius:6px 0 0 6px}
+.w-target .w-por{background:radial-gradient(circle at 40% 35%,#8fd16a,#2c6b1a 55%,#0a140a)}
+.w-tw{flex:1}
+.w-tw .w-bar.cast{margin:4px 30px 0 0}
+.w-log{font:13px var(--serif);text-shadow:0 1px 0 #000;margin-bottom:8px;line-height:1.55}
+.w-log b{color:var(--acc2)}
+.w-log .y{color:var(--yel)}
+.w-msgs{flex:1;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.w-say{align-self:flex-end;max-width:430px;background:var(--chat);border:2px solid #b9b9c4;border-radius:6px;box-shadow:0 0 0 1px #000;padding:8px 13px;font-size:14px}
+.w-say b{color:var(--yel)}
+.w-quest{background:var(--noise),var(--page);color:var(--ink);padding:14px 18px 6px}
+.w-qh{font:700 17px var(--serif);color:var(--ink);margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.w-qh::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,var(--ink2),transparent)}
+.w-quest p{margin:0 0 9px;line-height:1.6}
+.w-quest code{font:12px Menlo,monospace;color:var(--acc)}
+.w-win[data-variant="horde"] .w-quest code{color:#ff8a6a}
+.w-quest pre{margin:0 0 9px;background:color-mix(in srgb,var(--page) 85%,#000);border:1px solid color-mix(in srgb,var(--ink2) 60%,transparent);padding:9px 13px;font:11.5px/1.6 Menlo,monospace;color:var(--ink)}
+.w-quest .k{color:var(--acc)}.w-quest .f{color:#8a1c12}.w-quest .s{color:#3e6b1f}.w-quest .c{color:var(--ink2);font-style:italic}
+.w-win[data-variant="horde"] .w-quest .k{color:#ff8a6a}.w-win[data-variant="horde"] .w-quest .f{color:var(--yel)}.w-win[data-variant="horde"] .w-quest .s{color:#9cc46a}
+.w-ctabs{display:flex;gap:3px;margin-top:10px}
+.w-ctabs span{font:12px var(--serif);padding:3px 12px 2px;background:rgba(0,0,0,.55);border:1px solid #6b6b74;border-bottom:none;border-radius:6px 6px 0 0;color:#cfc8b8}
+.w-ctabs span.on{background:rgba(0,0,0,.8);color:#fff;border-color:#b9b9c4}
+.w-edit{background:rgba(0,0,0,.8);border:1px solid #b9b9c4;padding:8px 12px;font-size:14px;color:#aaa}
+.w-edit b{color:#fff;font-weight:400}
+.w-acts{display:flex;gap:4px;margin-top:8px;padding:5px;background:linear-gradient(var(--fr1),var(--fr2));border:2px solid var(--gold);box-shadow:0 0 0 1px #000;border-radius:4px}
+.w-a{width:44px;height:44px;position:relative;border:1px solid #000;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);display:grid;place-items:center;font-size:19px;color:#fff;background:radial-gradient(circle at 40% 35%,var(--c1,#5a6a8a),var(--c2,#1a2030));text-shadow:0 1px 2px #000}
+.w-a b{position:absolute;right:3px;top:1px;font:10px var(--serif);color:#e8e8e8}
+.w-a.empty{background:rgba(0,0,0,.45);box-shadow:inset 0 0 6px #000}
+.w-a.send{--c1:#ffe08a;--c2:#a0700a;color:#2a1a00;text-shadow:none;box-shadow:0 0 10px rgba(255,209,0,.7),inset 0 0 0 1px rgba(255,255,255,.5)}
+.w-xp{margin-top:6px;height:12px;border:1px solid #000;background:#1a0f22;position:relative;font:10px/11px var(--serif);text-align:center;color:#fff;text-shadow:0 1px 0 #000}
+.w-xp i{position:absolute;left:0;top:0;bottom:0;width:68%;background:linear-gradient(#b35ad6,#5a1d7a)}
+.w-xp::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(0,0,0,.8) calc(10% - 1px) 10%)}
+.w-xp span{position:relative;z-index:1}
+.w-right{display:flex;flex-direction:column;min-width:0}
+.w-mmw{display:flex;align-items:center;gap:36px;justify-content:flex-end;margin-bottom:10px;height:120px}
+.w-zt{text-align:right}
+.w-zt b{display:block;font:700 15px var(--serif);color:var(--yel);text-shadow:0 1px 0 #000}
+.w-zt span{font-size:12px;color:#d9c9a0}
+.w-mm{width:116px;height:116px;border-radius:50%;position:relative;border:4px solid var(--fr1);box-shadow:0 0 0 2px var(--gold),0 0 0 3px #000;background:radial-gradient(circle at 30% 40%,#6a8a4a 0 12%,transparent 13%),radial-gradient(circle at 65% 62%,#3a5a8a 0 16%,transparent 17%),radial-gradient(circle at 60% 30%,#8a7a4a 0 9%,transparent 10%),#4a6a3a}
+.w-mm::after{content:"";position:absolute;left:50%;top:50%;border:6px solid transparent;border-bottom:11px solid var(--yel);transform:translate(-50%,-70%)}
+.w-mb{position:absolute;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#4a4a52,#141418);border:2px solid var(--gold);box-shadow:0 0 0 1px #000;display:grid;place-items:center;font:700 12px var(--serif);color:#fff}
+.w-mb.on{background:radial-gradient(circle at 40% 35%,#ffe08a,#a0700a);color:#2a1a00}
+.w-clock{position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);background:#000;border:1px solid var(--gold);font:11px var(--serif);padding:0 6px;color:#fff}
+.w-map{flex:1;display:flex;flex-direction:column;background:var(--noise),var(--page);padding:0}
+.w-mt{margin:-5px -5px 0;padding:6px 0 5px;text-align:center;font:700 14px var(--serif);color:var(--yel);background:linear-gradient(var(--fr1),var(--fr2));border-bottom:2px solid var(--gold);text-shadow:0 1px 0 #000}
+.w-mt span{font-weight:400;color:#d9c9a0;font-size:12px;margin-left:8px}
+.w-mv{flex:1;margin:10px;border:2px solid color-mix(in srgb,var(--ink2) 70%,#000);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);overflow:hidden}
+.w-mf{display:flex;justify-content:space-between;padding:0 12px 9px;font-size:12px;color:var(--ink2)}
+</style>
+<div class="c-head">
+  <div>
+    <div class="kicker">Warcraft · Light (Alliance) and dark (Horde)</div>
+    <h2>Realm</h2>
+    <p>T3 becomes an MMO interface. You get a player frame for the model and a target frame for the current thread, with a cast bar showing what's running right now. The sidebar becomes a quest log with ! and ? markers and objectives. Tool calls read like a combat log, the composer is a chat box with channel tabs above an action bar, and the browser opens as the world map, with the right panel's tabs as buttons around a minimap.</p>
+    <p class="real"><b>Doable with CSS:</b> frames, quest log rows and markers by state, objectives built from each thread's existing branch and time lines, combat-log prefix, chat tabs, action-bar buttons, map frame and the minimap tab buttons. <b>Decorative:</b> health, mana and experience values, cast-bar progress and the minimap art.</p>
+  </div>
+  <dl class="map">
+    <dt>Top</dt><dd>Player frame (model: context and usage bars) and target frame (current thread) with a live cast bar</dd>
+    <dt>Sidebar</dt><dd>Quest log: projects as zones; gray ? running, gold ! needs you, gold ? done, red ! failed</dd>
+    <dt>Chat</dt><dd>Assistant replies as quest text on parchment; tool calls as combat-log lines</dd>
+    <dt>Composer</dt><dd>Chat box with channel tabs, an action bar with keybinds, and an experience bar for context</dd>
+    <dt>Right panel</dt><dd>Browser in a world-map frame; tabs as round minimap buttons (B, D, F)</dd>
+    <dt>Variants</dt><dd>Alliance (blue, gold, parchment) and Horde (iron, red, dark leather)</dd>
+  </dl>
+</div>
+<div class="variants" data-win="wc-win"><span>Faction</span><button class="on" data-v="alliance">Alliance · light</button><button data-v="horde">Horde · dark</button></div>
+<div class="win w-win" id="wc-win" data-variant="alliance">
+  <div class="w-top"><div class="lights"><i></i><i></i><i></i></div><span>T3 · Realm</span><em>web-app · 08:31</em></div>
+  <div class="w-body">
+    <aside class="w-left">
+      <div class="w-unit"><div class="w-por">T3<span class="w-lvl">5.5</span></div><div class="w-plate"><div class="w-nm">Opus 5.5 · Full access</div><div class="w-bar hp" style="--v:68%"><i></i><span>Context 68%</span></div><div class="w-bar mp" style="--v:41%"><i></i><span>Usage 41%</span></div></div></div>
+      <div class="w-book w-frame">
+        <div class="w-bt">Quest Log</div>
+        <div class="w-ql">
+          <div class="w-zone">web-app</div>
+          <div class="w-q on"><span class="w-mk g">?</span><span class="w-qt">Refactor auth middleware</span><span class="w-qa">now</span><span class="w-obj">- feat/auth-refactor</span><span class="w-obj">- Run tests: in progress</span></div>
+          <div class="w-q"><span class="w-mk y">!</span><span class="w-qt">Add dark mode toggle</span><span class="w-qa">needs you</span></div>
+          <div class="w-q"><span class="w-mk y">?</span><span class="w-qt">Fix flaky e2e test</span><span class="w-qa">1h</span><span class="w-obj done">- Complete</span></div>
+          <div class="w-zone">api-server</div>
+          <div class="w-q"><span class="w-mk r">!</span><span class="w-qt">Migrate to Postgres 17</span><span class="w-fail">Failed</span></div>
+          <div class="w-q"><span class="w-mk g">?</span><span class="w-qt">Tune rate limiter</span><span class="w-qa">3h</span></div>
+          <div class="w-q"><span class="w-mk y">?</span><span class="w-qt">Add OpenAPI docs</span><span class="w-qa">1d</span></div>
+        </div>
+        <div class="w-shelf"><span>Completed 173</span><span>Shelved 1</span></div>
+      </div>
+    </aside>
+    <main class="w-mid">
+      <div class="w-target">
+        <div class="w-tw">
+          <div class="w-unit"><div class="w-por">WA<span class="w-lvl">3</span></div><div class="w-plate"><div class="w-nm">Refactor auth middleware</div><div class="w-bar hp" style="--v:100%"><i></i><span>+142 / −38 · 24 of 24 tests</span></div></div></div>
+          <div class="w-bar cast" style="--v:62%"><i></i><span>Run tests · 1.2s</span></div>
+        </div>
+      </div>
+      <div class="w-msgs">
+        <div class="w-say"><b>[You] says:</b> Split the session check out of the auth middleware and add tests for expired tokens.</div>
+        <div class="w-log"><b>[Advisor]</b> read 4 files. <b>[Advisor]</b> ran 2 commands. <span class="y">[Advisor] edited auth/session.ts.</span></div>
+        <div class="w-quest w-frame">
+          <div class="w-qh">Advisor</div>
+          <p>Done. I moved the check into a new <code>verifySession()</code> helper and covered the expired-token case.</p>
+<pre><span class="c">// auth/session.ts</span>
+<span class="k">export async function</span> <span class="f">verifySession</span>(req: Request) {
+  <span class="k">const</span> token = req.cookies.<span class="f">get</span>(<span class="s">"sid"</span>)
+  <span class="k">if</span> (!token) <span class="k">throw new</span> <span class="f">AuthError</span>(<span class="s">"missing session"</span>)
+  <span class="k">return</span> sessions.<span class="f">verify</span>(token)
+}</pre>
+          <p>All 24 tests pass. Shall I open the PR?</p>
+        </div>
+      </div>
+      <div class="w-ctabs"><span class="on">General</span><span>Plan</span><span>Build</span></div>
+      <div class="w-edit"><b>Say:</b> Ask anything, @ to mention files…</div>
+      <div class="w-acts">
+        <div class="w-a" style="--c1:#7a8aaa;--c2:#1a2030"><b>1</b>✚</div>
+        <div class="w-a" style="--c1:#9a6ad6;--c2:#2a1040"><b>2</b>◈</div>
+        <div class="w-a" style="--c1:#d6a04a;--c2:#3a2408"><b>3</b>❂</div>
+        <div class="w-a" style="--c1:#4aa06a;--c2:#0a2a14"><b>4</b>✎</div>
+        <div class="w-a" style="--c1:#4a8ad6;--c2:#0a1a3a"><b>5</b>∿</div>
+        <div class="w-a empty"><b>6</b></div><div class="w-a empty"><b>7</b></div><div class="w-a empty"><b>8</b></div><div class="w-a empty"><b>9</b></div>
+        <div class="w-a send" style="margin-left:auto"><b>↵</b>➤</div>
+      </div>
+      <div class="w-xp"><i></i><span>Context 136,000 / 200,000</span></div>
+    </main>
+    <section class="w-right">
+      <div class="w-mmw">
+        <div class="w-zt"><b>localhost:3000</b><span>/login · 200 OK</span></div>
+        <div class="w-mm">
+          <span class="w-mb on" style="left:-14px;top:6px">B</span>
+          <span class="w-mb" style="left:-20px;top:44px">D</span>
+          <span class="w-mb" style="left:-12px;top:82px">F</span>
+          <span class="w-clock">08:31</span>
+        </div>
+      </div>
+      <div class="w-map w-frame">
+        <div class="w-mt">World Map<span>Browser</span></div>
+        <div class="w-mv"><div class="site"><div class="site-nav"><b>Acme</b><span>Product</span><span>Pricing</span><span>Docs</span></div><div class="site-body"><div class="site-card"><h3>Welcome back</h3><div class="sub">Sign in to your account</div><label>Email</label><div class="site-in">you@example.com</div><label>Password</label><div class="site-in">••••••••••</div><div class="site-btn">Sign in</div><div class="site-foot">Forgot password?</div></div></div></div></div>
+        <div class="w-mf"><span>47.3, 61.2</span><span>Loaded in 0.8s</span></div>
+      </div>
+    </section>
+  </div>
+</div>
+</section>
+<section class="concept" id="starcraft">
+<style>
+.s-win{--bg:#0a0d10;--pl:#1b2126;--pl2:#262e34;--edge:#56636b;--acc:#3be06a;--hi:#e8b923;--tx:#d4e6da;--dim:#6f8378;--ok:#3be06a;--warn:#e8d023;--bad:#ff3b2f;--r:2px;--glow:rgba(59,224,106,.35);--font:"DIN Condensed","Avenir Next Condensed",sans-serif;--body:"Avenir Next",sans-serif;--tex:repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px);--rv:#6b7880;background:radial-gradient(ellipse 60% 50% at 50% 40%,#13202a,transparent 75%),var(--noise),var(--bg);color:var(--tx);font:13.5px/1.5 var(--body)}
+.s-win[data-variant="protoss"]{--bg:#060a16;--pl:#141c33;--pl2:#1d2846;--edge:#c9a24a;--acc:#36d1f0;--hi:#e8c56a;--tx:#e3f2ff;--dim:#7487a8;--ok:#36f0a0;--warn:#f0d036;--bad:#ff4a5a;--r:14px;--glow:rgba(54,209,240,.4);--font:Optima,"Avenir Next",sans-serif;--body:Optima,"Avenir Next",sans-serif;--tex:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(54,209,240,.08),transparent 70%);--rv:transparent;background:radial-gradient(ellipse 60% 50% at 50% 30%,#14204a,transparent 75%),var(--bg)}
+.s-win[data-variant="zerg"]{--bg:#0c060e;--pl:#24102a;--pl2:#331638;--edge:#7a2f8f;--acc:#b5ff3a;--hi:#ff9e3a;--tx:#f1def5;--dim:#8d6f98;--ok:#b5ff3a;--warn:#ffcf3a;--bad:#ff3b6b;--r:18px 6px 20px 8px;--glow:rgba(181,255,58,.35);--font:"Avenir Next Condensed","Avenir Next",sans-serif;--tex:radial-gradient(circle at 10% 90%,rgba(140,30,100,.35),transparent 40%),radial-gradient(circle at 90% 10%,rgba(90,20,120,.3),transparent 40%);--rv:transparent;background:radial-gradient(circle at 15% 85%,rgba(122,30,90,.4),transparent 30%),radial-gradient(circle at 92% 20%,rgba(90,20,120,.35),transparent 32%),var(--bg)}
+.s-plate{background:var(--rivets,none),var(--tex),linear-gradient(var(--pl2),var(--pl));border:1px solid var(--edge);border-radius:var(--r);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 0 1px #000,0 10px 26px rgba(0,0,0,.5)}
+.s-win{--rivets:radial-gradient(circle at 8px 8px,var(--rv) 2px,transparent 2.6px),radial-gradient(circle at calc(100% - 8px) 8px,var(--rv) 2px,transparent 2.6px),radial-gradient(circle at 8px calc(100% - 8px),var(--rv) 2px,transparent 2.6px),radial-gradient(circle at calc(100% - 8px) calc(100% - 8px),var(--rv) 2px,transparent 2.6px)}
+.s-win[data-variant="protoss"] .s-plate{box-shadow:inset 0 0 0 1px rgba(232,197,106,.25),0 0 0 1px #000,0 0 26px rgba(54,209,240,.12)}
+.s-win[data-variant="zerg"] .s-plate{box-shadow:inset 0 0 20px rgba(140,30,100,.35),0 0 0 1px #000,0 0 24px rgba(122,47,143,.3)}
+.s-top{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;gap:10px;padding:0 14px;background:linear-gradient(var(--pl2),var(--pl));border-bottom:1px solid var(--edge)}
+.s-tb{font:13px/1 var(--font);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);padding:6px 10px 5px;border:1px solid var(--edge);border-radius:var(--r);background:rgba(0,0,0,.3)}
+.s-obj{margin-left:28px;font:15px var(--font);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.s-obj b{color:var(--tx);font-weight:600}
+.s-res{margin-left:auto;display:flex;gap:20px;align-items:center;font:16px/1 var(--font);letter-spacing:.06em;color:var(--tx)}
+.s-res span{display:flex;align-items:center;gap:7px}
+.s-res em{font-style:normal;font-size:11px;color:var(--dim);letter-spacing:.12em}
+.s-min{width:12px;height:14px;background:linear-gradient(135deg,#bfe6ff,#3a8ad6);clip-path:polygon(50% 0,100% 30%,80% 100%,20% 100%,0 30%)}
+.s-gas{width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#c8ffb0,#2a9a2a)}
+.s-sup{width:14px;height:12px;background:var(--hi);clip-path:polygon(50% 0,100% 40%,100% 100%,0 100%,0 40%)}
+.s-clock{padding:5px 9px 4px;border:1px solid var(--edge);border-radius:var(--r);background:#000;color:var(--acc)}
+.s-body{position:absolute;top:58px;left:12px;right:12px;bottom:12px;display:grid;grid-template-columns:282px 1fr 476px;gap:12px}
+.s-left{padding:12px 12px;display:flex;flex-direction:column;min-width:0}
+.s-h{font:14px var(--font);letter-spacing:.18em;text-transform:uppercase;color:var(--acc);display:flex;justify-content:space-between;padding:0 4px 8px;border-bottom:1px solid color-mix(in srgb,var(--edge) 60%,transparent)}
+.s-grp{display:flex;align-items:center;gap:8px;margin:12px 4px 6px;font:13px var(--font);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.s-grp b{display:grid;place-items:center;width:20px;height:20px;border:1px solid var(--edge);border-radius:var(--r);background:#000;color:var(--hi);font-weight:400}
+.s-u{display:grid;grid-template-columns:46px 1fr;gap:1px 10px;align-items:center;padding:6px;border-radius:var(--r);border:1px solid transparent}
+.s-ic{grid-row:span 3;width:46px;height:46px;position:relative;color:var(--uc);display:grid;place-items:center;background:rgba(0,0,0,.45);border:1px solid color-mix(in srgb,var(--uc) 40%,transparent);border-radius:var(--r)}
+.s-ic svg{width:34px;height:34px;filter:drop-shadow(0 0 4px var(--uc))}
+.s-un{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-us{font:12px var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--uc)}
+.s-hp{height:4px;background:rgba(0,0,0,.6);position:relative}
+.s-hp i{position:absolute;inset:0;width:var(--v);background:var(--uc)}
+.s-u.run{--uc:var(--acc)}.s-u.inp{--uc:var(--warn)}.s-u.done{--uc:var(--ok)}.s-u.fail{--uc:var(--bad)}
+.s-u.run .s-hp i{background:repeating-linear-gradient(90deg,var(--uc) 0 6px,color-mix(in srgb,var(--uc) 50%,#000) 6px 8px)}
+.s-u.inp .s-ic{animation:pulse 1.2s infinite}
+.s-u.on{border-color:color-mix(in srgb,var(--acc) 50%,transparent);background:color-mix(in srgb,var(--acc) 8%,transparent)}
+.s-u.on .s-ic::after{content:"";position:absolute;left:-3px;right:-3px;bottom:-5px;height:12px;border:2px solid var(--ok);border-radius:50%;opacity:.9}
+.s-sel{margin-top:auto;padding:10px 4px 0;border-top:1px solid color-mix(in srgb,var(--edge) 60%,transparent);font:12px var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
+.s-mid{display:flex;flex-direction:column;min-width:0}
+.s-view{flex:1;display:flex;flex-direction:column;gap:14px;padding:6px 10px 12px;overflow:hidden;background:linear-gradient(color-mix(in srgb,var(--acc) 5%,transparent) 1px,transparent 1px) 0 0/40px 40px,linear-gradient(90deg,color-mix(in srgb,var(--acc) 5%,transparent) 1px,transparent 1px) 0 0/40px 40px}
+.s-you{align-self:flex-end;max-width:430px;padding:9px 14px;font-size:14px}
+.s-lab{font:12px var(--font);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:3px}
+.s-log{font:13px var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+.s-log span{color:var(--dim)}
+.s-tx{display:grid;grid-template-columns:92px 1fr;gap:14px}
+.s-por{width:92px;height:104px;position:relative;overflow:hidden;border:2px solid var(--edge);border-radius:var(--r);background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--acc) 70%,#fff) 0 15%,transparent 16%),radial-gradient(ellipse 60% 36% at 50% 100%,color-mix(in srgb,var(--acc) 55%,#000) 0 60%,transparent 62%),linear-gradient(#071008,#000);box-shadow:inset 0 0 18px #000}
+.s-por::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.4) 0 1px,transparent 1px 3px),linear-gradient(transparent 40%,color-mix(in srgb,var(--acc) 30%,transparent) 50%,transparent 60%) 0 0/100% 300%;animation:sscan 2.6s linear infinite}
+@keyframes sscan{from{background-position:0 0,0 120%}to{background-position:0 0,0 -20%}}
+.s-pn{font:12px var(--font);letter-spacing:.18em;color:var(--acc);text-align:center;margin-top:5px}
+.s-msg p{margin:0 0 10px;line-height:1.6}
+.s-msg code{font:12px Menlo,monospace;color:var(--hi)}
+.s-msg pre{margin:0 0 10px;padding:10px 14px;background:rgba(0,0,0,.6);border:1px solid color-mix(in srgb,var(--edge) 70%,transparent);border-radius:var(--r);font:11.5px/1.6 Menlo,monospace;color:var(--tx)}
+.s-msg .k{color:var(--acc)}.s-msg .f{color:var(--hi)}.s-msg .s{color:#9fd4ff}.s-msg .c{color:var(--dim)}
+.s-con{display:grid;grid-template-columns:118px 1fr 152px;gap:10px;padding:10px;align-items:stretch}
+.s-mm{position:relative;background:#000;border:1px solid var(--edge);border-radius:var(--r);overflow:hidden;background:linear-gradient(color-mix(in srgb,var(--acc) 12%,transparent) 1px,transparent 1px) 0 0/14px 14px,linear-gradient(90deg,color-mix(in srgb,var(--acc) 12%,transparent) 1px,transparent 1px) 0 0/14px 14px,#020403}
+.s-mm i{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:5px;background:var(--c);border-radius:1px}
+.s-mm b{position:absolute;left:10px;right:10px;top:62px;height:40px;border:1px solid #fff}
+.s-mml{position:absolute;left:6px;bottom:3px;font:10px var(--font);letter-spacing:.14em;color:var(--dim)}
+.s-info{display:flex;flex-direction:column;gap:7px;min-width:0}
+.s-in{flex:1;background:rgba(0,0,0,.55);border:1px solid var(--edge);border-radius:var(--r);padding:9px 12px;color:var(--dim);font-size:14px}
+.s-chips{display:flex;gap:6px}
+.s-chips span{font:12px var(--font);letter-spacing:.14em;text-transform:uppercase;padding:4px 8px 3px;border:1px solid var(--edge);border-radius:var(--r);background:rgba(0,0,0,.35);color:var(--tx)}
+.s-cc{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.s-cb{aspect-ratio:1;position:relative;display:grid;place-items:center;font-size:17px;color:var(--acc);background:radial-gradient(circle at 40% 35%,color-mix(in srgb,var(--acc) 22%,#000),#000 80%);border:1px solid var(--edge);border-radius:var(--r);text-shadow:0 0 8px var(--glow)}
+.s-cb b{position:absolute;right:3px;top:0;font:11px var(--font);color:var(--hi);font-weight:400}
+.s-cb.off{opacity:.35}
+.s-cb.go{background:radial-gradient(circle at 40% 35%,var(--acc),color-mix(in srgb,var(--acc) 30%,#000));color:#000;text-shadow:none;box-shadow:0 0 12px var(--glow)}
+.s-cb.stop{color:var(--bad)}
+.s-right{display:flex;flex-direction:column;padding:12px;min-width:0}
+.s-tabs{display:flex;gap:6px;margin-bottom:10px}
+.s-tabs span{font:13px var(--font);letter-spacing:.14em;text-transform:uppercase;padding:5px 10px 4px;border:1px solid var(--edge);border-radius:var(--r);color:var(--dim);background:rgba(0,0,0,.3)}
+.s-tabs span.on{color:#000;background:var(--acc);border-color:var(--acc)}
+.s-intel{flex:1;background:linear-gradient(color-mix(in srgb,var(--acc) 7%,transparent) 1px,transparent 1px) 0 0/22px 22px,linear-gradient(90deg,color-mix(in srgb,var(--acc) 7%,transparent) 1px,transparent 1px) 0 0/22px 22px,rgba(0,0,0,.6);border:1px solid color-mix(in srgb,var(--edge) 70%,transparent);border-radius:var(--r);padding:12px;overflow:hidden}
+.s-fh{display:flex;align-items:baseline;gap:10px;font:15px var(--font);letter-spacing:.1em;margin:4px 0 6px}
+.s-fh b{color:var(--tx);font-weight:600}
+.s-fh .a{color:var(--ok)}.s-fh .d{color:var(--bad)}
+.s-fh em{margin-left:auto;font-style:normal;font-size:12px;color:var(--dim);letter-spacing:.14em}
+.s-dl{font:11.5px/1.7 Menlo,monospace;white-space:pre;color:color-mix(in srgb,var(--tx) 75%,transparent);padding-left:4px}
+.s-dl i{font-style:normal;display:inline-block;width:38px;color:var(--dim)}
+.s-dl.a{background:color-mix(in srgb,var(--ok) 13%,transparent);color:color-mix(in srgb,var(--ok) 60%,#fff)}
+.s-dl.x{background:color-mix(in srgb,var(--bad) 15%,transparent);color:color-mix(in srgb,var(--bad) 55%,#fff)}
+.s-sep{height:14px}
+.s-done{margin-top:12px;padding:9px 12px;border:1px solid var(--acc);border-radius:var(--r);background:color-mix(in srgb,var(--acc) 10%,transparent);font:14px var(--font);letter-spacing:.16em;text-transform:uppercase;color:var(--acc);text-align:center;box-shadow:0 0 16px var(--glow)}
+</style>
+<div class="c-head">
+  <div>
+    <div class="kicker">StarCraft · Dark · three race skins</div>
+    <h2>Command</h2>
+    <p>T3 becomes an RTS command interface. The top bar shows resources (tokens, cost, running threads as supply) and the session clock. The sidebar is your unit selection: each thread is a wireframe unit colored by health, with control-group hotkeys per project. The composer becomes the bottom console, with the conversation minimap, an order line and a command card of hotkeyed buttons. The diff is a tactical readout with grid coordinates.</p>
+    <p class="real"><b>Doable with CSS:</b> plates and console layout, wireframe units colored by thread state, selection ring, command-card buttons, the minimap (T3 already has a conversation minimap), tactical diff frame, and the race skins. <b>Decorative:</b> resource numbers, the unit icon art and "upgrade complete" line. Diff lines can be recolored but not restyled.</p>
+  </div>
+  <dl class="map">
+    <dt>Top bar</dt><dd>Objective (thread title), resources: tokens, cost, supply (running threads), session clock</dd>
+    <dt>Sidebar</dt><dd>Selection panel: threads as wireframe units colored green, yellow or red by health; projects as control groups [1] [2]</dd>
+    <dt>Chat</dt><dd>Assistant transmissions with an animated portrait; tool calls as the mission log</dd>
+    <dt>Composer</dt><dd>Bottom console: conversation minimap, order input, and a 3×3 command card with hotkeys</dd>
+    <dt>Right panel</dt><dd>Diff as a tactical readout on a grid, ending with "upgrade complete"</dd>
+    <dt>Variants</dt><dd>Terran (steel, rivets, green), Protoss (gold and cyan, rounded), Zerg (purple, organic)</dd>
+  </dl>
+</div>
+<div class="variants" data-win="sc-win"><span>Race</span><button class="on" data-v="terran">Terran</button><button data-v="protoss">Protoss</button><button data-v="zerg">Zerg</button></div>
+<svg width="0" height="0" style="position:absolute"><symbol id="s-unit" viewBox="0 0 40 40"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M20 3L35 11.5V28.5L20 37L5 28.5V11.5Z" fill="currentColor" fill-opacity=".12"/><path d="M20 10L28 24H12Z"/><path d="M20 3V10M5 28.5L12 24M35 28.5L28 24"/></g></symbol></svg>
+<div class="win s-win" id="sc-win" data-variant="terran">
+  <div class="s-top">
+    <div class="lights"><i></i><i></i><i></i></div>
+    <span class="s-tb" style="margin-left:10px">Menu</span><span class="s-tb">Search</span><span class="s-tb">+ New</span>
+    <span class="s-obj">Objective ▸ <b>Refactor auth middleware</b></span>
+    <div class="s-res">
+      <span><i class="s-min"></i>24,180 <em>TOKENS</em></span>
+      <span><i class="s-gas"></i>$1.42 <em>COST</em></span>
+      <span><i class="s-sup"></i>2/10 <em>RUNNING</em></span>
+      <span class="s-clock">08:31</span>
+    </div>
+  </div>
+  <div class="s-body">
+    <aside class="s-left s-plate">
+      <div class="s-h"><span>Selection</span><span>6 units</span></div>
+      <div class="s-grp"><b>1</b>web-app</div>
+      <div class="s-u run on"><div class="s-ic"><svg><use href="#s-unit"/></svg></div><div class="s-un">Refactor auth middleware</div><div class="s-us">In progress · 62%</div><div class="s-hp" style="--v:62%"><i></i></div></div>
+      <div class="s-u inp"><div class="s-ic"><svg><use href="#s-unit"/></svg></div><div class="s-un">Add dark mode toggle</div><div class="s-us">Awaiting orders</div><div class="s-hp" style="--v:55%"><i></i></div></div>
+      <div class="s-u done"><div class="s-ic"><svg><use href="#s-unit"/></svg></div><div class="s-un">Fix flaky e2e test</div><div class="s-us">Complete · 1h</div><div class="s-hp" style="--v:100%"><i></i></div></div>
+      <div class="s-grp"><b>2</b>api-server</div>
+      <div class="s-u fail"><div class="s-ic"><svg><use href="#s-unit"/></svg></div><div class="s-un">Migrate to Postgres 17</div><div class="s-us">Critical · failed</div><div class="s-hp" style="--v:12%"><i></i></div></div>
+      <div class="s-u run"><div class="s-ic"><svg><use href="#s-unit"/></svg></div><div class="s-un">Tune rate limiter</div><div class="s-us">In progress · 30%</div><div class="s-hp" style="--v:30%"><i></i></div></div>
+      <div class="s-u done"><div class="s-ic"><svg><use href="#s-unit"/></svg></div><div class="s-un">Add OpenAPI docs</div><div class="s-us">Complete · 1d</div><div class="s-hp" style="--v:100%"><i></i></div></div>
+      <div class="s-sel"><span>Settled 173</span><span>Snoozed 1</span></div>
+    </aside>
+    <main class="s-mid">
+      <div class="s-view">
+        <div class="s-you s-plate"><div class="s-lab">Your orders</div>Split the session check out of the auth middleware and add tests for expired tokens.</div>
+        <div class="s-log">Mission log ▸ <span>Read 4 files · Ran 2 commands · Edited auth/session.ts</span></div>
+        <div class="s-tx">
+          <div><div class="s-por"></div><div class="s-pn">ADVISOR</div></div>
+          <div class="s-msg">
+            <div class="s-lab" style="color:var(--acc)">Incoming transmission</div>
+            <p>Done. I moved the check into a new <code>verifySession()</code> helper and covered the expired-token case.</p>
+<pre><span class="c">// auth/session.ts</span>
+<span class="k">export async function</span> <span class="f">verifySession</span>(req: Request) {
+  <span class="k">const</span> token = req.cookies.<span class="f">get</span>(<span class="s">"sid"</span>)
+  <span class="k">if</span> (!token) <span class="k">throw new</span> <span class="f">AuthError</span>(<span class="s">"missing session"</span>)
+  <span class="k">return</span> sessions.<span class="f">verify</span>(token)
+}</pre>
+            <p>All 24 tests pass. Awaiting your order to open the PR.</p>
+          </div>
+        </div>
+      </div>
+      <div class="s-con s-plate">
+        <div class="s-mm">
+          <i style="--x:62px;--y:10px;--w:44px;--c:var(--hi)"></i>
+          <i style="--x:10px;--y:24px;--w:60px;--c:var(--dim)"></i>
+          <i style="--x:10px;--y:36px;--w:80px;--c:var(--acc)"></i>
+          <i style="--x:62px;--y:52px;--w:44px;--c:var(--hi)"></i>
+          <i style="--x:10px;--y:68px;--w:90px;--c:var(--acc)"></i>
+          <i style="--x:10px;--y:80px;--w:70px;--c:var(--acc)"></i>
+          <i style="--x:10px;--y:92px;--w:84px;--c:var(--acc)"></i>
+          <b></b><span class="s-mml">MINIMAP</span>
+        </div>
+        <div class="s-info">
+          <div class="s-in">Issue an order… @ to target a file</div>
+          <div class="s-chips"><span>Opus 5.5</span><span>Full access</span><span>Plan: off</span></div>
+        </div>
+        <div class="s-cc">
+          <div class="s-cb"><b>A</b>✚</div><div class="s-cb"><b>M</b>◈</div><div class="s-cb"><b>F</b>❂</div>
+          <div class="s-cb"><b>P</b>✎</div><div class="s-cb"><b>V</b>∿</div><div class="s-cb"><b>T</b>▤</div>
+          <div class="s-cb off"><b>H</b>⌂</div><div class="s-cb stop"><b>S</b>■</div><div class="s-cb go"><b style="color:#000">↵</b>➤</div>
+        </div>
+      </div>
+    </main>
+    <section class="s-right s-plate">
+      <div class="s-tabs"><span class="on">Tactical · Diff</span><span>Viewport · Browser</span><span>Files</span></div>
+      <div class="s-intel">
+        <div class="s-fh"><b>auth/session.ts</b><span class="a">+42</span><span class="d">−6</span><em>SECTOR A12</em></div>
+        <div class="s-dl"><i>A12</i> export async function verifySession(req) {</div>
+        <div class="s-dl x"><i>A13</i>-  const user = await legacyCheck(req)</div>
+        <div class="s-dl a"><i>A13</i>+  const token = req.cookies.get("sid")</div>
+        <div class="s-dl a"><i>A14</i>+  if (!token) throw new AuthError("missing")</div>
+        <div class="s-dl a"><i>A15</i>+  if (isExpired(token)) throw new AuthError(…)</div>
+        <div class="s-dl"><i>A16</i>   return sessions.verify(token)</div>
+        <div class="s-dl"><i>A17</i> }</div>
+        <div class="s-sep"></div>
+        <div class="s-fh"><b>auth/middleware.ts</b><span class="a">+4</span><span class="d">−32</span><em>SECTOR B04</em></div>
+        <div class="s-dl"><i>B04</i> export function requireAuth(next) {</div>
+        <div class="s-dl x"><i>B05</i>-  const user = await legacyCheck(req)</div>
+        <div class="s-dl x"><i>B06</i>-  if (!user) return redirect("/login")</div>
+        <div class="s-dl a"><i>B05</i>+  await verifySession(req)</div>
+        <div class="s-dl"><i>B06</i>   return next()</div>
+        <div class="s-sep"></div>
+        <div class="s-fh"><b>auth/session.test.ts</b><span class="a">+96</span><span class="d">−0</span><em>NEW SECTOR</em></div>
+        <div class="s-dl a"><i>C01</i>+  it("rejects expired tokens", async () => {</div>
+        <div class="s-dl a"><i>C02</i>+    await expect(verifySession(expired)).rejects…</div>
+        <div class="s-done">Upgrade complete · 24 / 24 tests</div>
+      </div>
+    </section>
+  </div>
+</div>
+</section>
+<script>
+document.querySelectorAll('.variants').forEach(function(v){
+  var win=document.getElementById(v.dataset.win);
+  v.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click',function(){
+      v.querySelectorAll('button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');
+      win.dataset.variant=b.dataset.v;
+    });
+  });
+});
+</script>
+</body>
+</html>
