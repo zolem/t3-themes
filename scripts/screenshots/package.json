@@ -3,8 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "setup": "node dev.mjs setup",
     "shoot": "node shoot.mjs",
-    "demo": "node shoot.mjs --serve"
+    "demo": "node dev.mjs serve",
+    "dev": "node dev.mjs"
   },
   "devDependencies": {
     "playwright": "^1.58.0"

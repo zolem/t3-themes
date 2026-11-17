@@ -47,6 +47,8 @@ T3 writes edited and new themes to its themes directory, not to this repo. To ke
 
 ## Make a new theme
 
+For a full theme that transforms the app's layout, frames and state effects, like the ones in this repo, follow the build-t3-theme skill (`.claude/skills/build-t3-theme/SKILL.md`). It covers pitching, mocking up, building in the demo copy, polishing and shipping. The steps below are the minimum for a simple theme.
+
 1. Pick a short kebab-case id. It becomes the file name and the id in T3.
 2. Start from the guide (`t3_theme_read`) or copy an existing theme in `themes/`.
 3. Publish it with `t3_theme_set` (`themeId` plus `theme`), iterate with the user, then `./scripts/pull.sh <id>`.
@@ -56,16 +58,19 @@ T3 writes edited and new themes to its themes directory, not to this repo. To ke
 
 ## Screenshots
 
-Never screenshot the user's own T3. It shows their real projects, threads, machine name and shell prompt. Use the demo copy instead, which has fake data and lives in `~/.t3-themes-demo`:
+Never screenshot the user's own T3. It shows their real projects, threads, machine name and shell prompt. Use the demo copy instead. It has fake data, lives in `~/.t3-themes-demo`, and `npm run setup` creates it. Setup needs the `t3` command and a provider that can run a small model; the README's "Set up once" section says how to get them.
 
 ```sh
 cd scripts/screenshots
-npm install && npx playwright install chromium   # first time only
+npm install && npm run setup     # first time only: checks t3, installs Chromium, creates the demo copy
 npm run shoot -- <id>            # or no id for every theme
 npm run demo                     # run the demo copy for the user to open in their browser
+npm run dev -- shot <id or file> [views...]   # screenshot a theme in progress, outside the repo
 ```
 
 `shoot` writes `new-thread.png`, `thread.png` and `panels.png` (terminal and right panel open) to `themes/<id>/screenshots/`, and the theme README already shows them. If the demo data doesn't exist yet, or you pass `--reseed`, the tool runs real agent turns to create it. Tell the user before doing that. Look at every screenshot before committing it.
+
+`npm run dev` is for seeing a theme while you work on it. It also has `turn` (screenshots of a real agent turn), `eval` (run a probe script in the page) and `run` (run your own Playwright script for hovers, scrolling and so on). The README's "Working on a theme" section lists its commands.
 
 ## Theme file format
 
@@ -76,7 +81,7 @@ A JSON object:
 - `canvas`, `accent`: hex colors that T3 derives a full palette from.
 - `colors`: overrides for single color roles (`surface`, `sidebar`, `terminalBackground` and so on; `t3_theme_read` lists them all). Prefer colors over CSS.
 - `variants.light` / `variants.dark`: role overrides for the other appearance.
-- `css`: extra CSS applied after the app's styles, up to 50,000 characters.
+- `css`: extra CSS applied after the app's styles. Up to 100,000 characters on T3 Code nightly 20261117.4825 or later, and 50,000 on v0.1.10 and older nightlies. If a theme's `css` is over 50,000, say which version it needs in its README.
 - `version`: optional, currently `1`.
 
 ## CSS rules that bite
@@ -94,18 +99,8 @@ A JSON object:
 Run before committing a theme:
 
 ```sh
-python3 - themes/*/theme.json <<'PY'
-import json, sys
-for path in sys.argv[1:]:
-    t = json.load(open(path))
-    css = t.get("css", "")
-    problems = [m for m, bad in [
-        ("missing name", "name" not in t),
-        ("appearance must be dark or light", t.get("appearance") not in ("dark", "light")),
-        (f"css is {len(css)} chars (max 50000)", len(css) > 50000),
-        ("css contains a backslash", "\\" in css),
-        ("css uses @import", "@import" in css),
-    ] if bad]
-    print(path, "ok" if not problems else "; ".join(problems))
-PY
+./scripts/check.py                          # every theme in themes/
+./scripts/check.py path/to/theme.json       # one file
 ```
+
+It fails on a missing name, a bad appearance, `css` over 100,000 characters, a backslash in `css`, `@import` or `image-set()`. It warns when `css` is over 50,000 characters, because that needs a newer T3 (see the README's Requirements).
