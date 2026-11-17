@@ -7,8 +7,6 @@ Custom themes for [T3 Code](https://github.com/pingdotgg/t3code) that restyle th
 | LCARS | `lcars` | Starfleet LCARS console: elbow frames, pill buttons, numbered panels |
 | Workshop | `workshop` | Holographic garage workshop: 3D-tilted side walls, arc-reactor status, voice waveform composer |
 
-Mockups of these and other ideas are in [`mockups/`](mockups/). Open them in a browser.
-
 ## Install
 
 ```sh
