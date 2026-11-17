@@ -6,6 +6,7 @@ Custom themes for [T3 Code](https://github.com/pingdotgg/t3code) that restyle th
 | --- | --- | --- |
 | LCARS | `lcars` | Starfleet LCARS console: elbow frames, pill buttons, numbered panels |
 | Workshop | `workshop` | Holographic garage workshop: 3D-tilted side walls, arc-reactor status, voice waveform composer |
+| Luna XP | `windows-xp` | Early-2000s desktop look: blue title bars, glossy buttons, light theme |
 
 ## Install
 
