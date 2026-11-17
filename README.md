@@ -11,6 +11,16 @@ Custom themes for [T3 Code](https://github.com/pingdotgg/t3code) that restyle th
 
 Each theme's folder has its own README with screenshots and a one-step install for just that theme.
 
+## Requirements
+
+| Feature | T3 Code version |
+| --- | --- |
+| Themes with CSS (every theme here) | v0.1.10, or nightly 20261114.4669 or later |
+| Background image files (Azeroth) | v0.1.10, or nightly 20261116.4800 or later |
+| `css` over 50,000 characters, up to 100,000 | nightly 20261117.4825 or later; no stable release yet |
+
+Every theme here keeps its `css` under 50,000 characters, so all of them work on v0.1.10. A theme that needs a newer build says so in its README.
+
 | LCARS | Workshop | Luna XP | Azeroth |
 | --- | --- | --- | --- |
 | [![LCARS](themes/lcars/screenshots/thread.png)](themes/lcars) | [![Workshop](themes/workshop/screenshots/thread.png)](themes/workshop) | [![Luna XP](themes/windows-xp/screenshots/thread.png)](themes/windows-xp) | [![Azeroth](themes/azeroth/screenshots/thread.png)](themes/azeroth) |
@@ -53,16 +63,34 @@ git add themes && git commit -m "Tune workshop"
 
 Both scripts also copy a theme's background image if it has one. To add a new theme to the repo, pull it by id: `./scripts/pull.sh my-theme`.
 
-## Screenshots
+## Screenshots and the demo copy
 
-Screenshots come from a separate demo copy of T3 filled with fake data, so your own projects, threads and machine name never show up:
+Screenshots come from a separate demo copy of T3 filled with fake data, so your own projects, threads and machine name never show up. The demo copy lives in its own folder, `~/.t3-themes-demo`, and never touches your real T3 data in `~/.t3`.
+
+### Set up once
+
+You need:
+
+- Node 18 or later.
+- T3 Code v0.1.10 or later (see Requirements).
+- T3's `t3` command. In the desktop app, open Settings, find the row that says "Run T3 Code's CLI as `t3` from any terminal" (search settings for "CLI"), and click Install. If `t3` is installed somewhere else, set `T3_BIN` to its path.
+- A provider set up in T3 that can run a small model. The demo data uses Claude Haiku by default. To use another, set `SEED_PROVIDER` to a provider instance id and `SEED_MODEL` to a model slug.
+
+Then run:
 
 ```sh
 cd scripts/screenshots
-npm install && npx playwright install chromium   # first time only
+npm install
+npm run setup
+```
+
+`npm run setup` checks your Node and T3 versions, lists which theme features your T3 supports, installs the headless Chromium that Playwright uses, and creates the demo copy. Creating it runs three short agent turns to make the demo threads, which costs a few cents. Run it again any time to recheck; it skips what's already done. `npm run setup -- --reseed` starts the demo data over.
+
+### Take the repo screenshots
+
+```sh
 npm run shoot                    # every theme
 npm run shoot -- workshop        # one theme
-npm run demo                     # open the demo copy in your own browser
 ```
 
 `npm run shoot` saves three screenshots per theme in `themes/<id>/screenshots/`:
@@ -71,16 +99,42 @@ npm run demo                     # open the demo copy in your own browser
 - `thread.png`: a thread with the details panel.
 - `panels.png`: the same thread with the terminal and right panel open.
 
-`npm run demo` keeps the demo copy running and prints a sign-in link. Switch themes there with `t3 theme set` (it prints the exact command).
+### Working on a theme
+
+`npm run dev` lets you (or an agent) see a theme in the demo copy while you build it, without touching your own T3. A theme can be a repo id or a path to any theme JSON file. A background image beside the file (`background.jpg`, or `<name>.jpg`, `.png` or `.webp`) goes with it.
+
+```sh
+npm run demo                                     # keep the demo copy running, and open it in your browser
+npm run demo -- ~/work/my-theme.json             # the same, switched to your theme
+npm run dev -- shot ~/work/my-theme.json         # screenshot the new-thread, thread and panels views
+npm run dev -- shot my-theme thread menu settings          # pick views
+npm run dev -- shot my-theme thread --state Failed         # show the thread's sidebar row as failed
+npm run dev -- turn my-theme                     # screenshot a real agent turn while it works and as it ends
+npm run dev -- eval my-theme probes/survey.js panels       # run a script in the page and print the result
+npm run dev -- run my-theme my-script.mjs        # run your own Playwright script: hover, scroll, resize, measure
+```
+
+- **Views:** `new`, `thread`, `panels`, `menu` (the model picker open) and `settings`.
+- **States:** `--state` adds a status word (`Working`, `Approval`, `Input`, `Failed`, `Done` and so on) to the shown thread's sidebar row, so you can check state styles without waiting for one. `turn` sends one short real turn to a different demo thread, which costs a fraction of a cent, and takes screenshots from 0.1 s to 4 s after it starts and ends to catch animations.
+- **Output:** screenshots go to `~/.t3-themes-demo/shots/<id>/` (change it with `--out`), never into the repo. Use `--width`, `--height` and `--scale` for other sizes.
+- **Probes:** `probes/survey.js` lists every `data-*` hook on the page, `probes/opaque.js` lists solid layers that would hide a background image, and `probes/states.js` shows each sidebar row's status words. An eval script is the body of an async function, so it ends with `return`.
+- **Playwright scripts:** for anything the views don't cover, such as hovering for a tooltip, scrolling, resizing the sidebar or maximizing a panel, `run` takes a module whose default export gets the Playwright `page` and the tool's helpers (`views`, `fakeState`, and `shot`, which saves a privacy-checked screenshot). `probes/example-run.mjs` shows one.
+- **Speed:** while `npm run demo` is running, the other commands reuse it. Otherwise each one starts its own demo server and stops it when done.
+
+Notes on the demo copy:
 
 - **Where the data lives:** the demo copy stays in `~/.t3-themes-demo` between runs (set `T3_THEMES_DEMO_DIR` to move it). It never touches `~/.t3`.
-- **Demo data:** the first run adds a fake project (`acme-weather`, from `scripts/screenshots/demo-project/`) and three threads. It makes those threads by running real agent turns with a small model, which costs a few cents. To use a different model, set `SEED_PROVIDER` and `SEED_MODEL`. Use `--reseed` to start over.
+- **Demo data:** setup adds a fake project (`acme-weather`, from `scripts/screenshots/demo-project/`) and three threads. If the demo copy is missing, any other command creates it the same way first.
 - **Machine name and terminal:** the demo copy reports "Demo Mac" as the machine name. Its terminals use a demo shell config with a `demo@acme-weather` prompt instead of your `~/.zshrc`.
 - **Privacy check:** before saving each screenshot, the tool replaces your username and home folder on the page and checks the page text again. It refuses to save if anything is left, or if the terminal didn't load the demo shell config. Look at the screenshots anyway before committing.
 
 ## Agent skill
 
 `.claude/skills/t3-themes/SKILL.md` teaches coding agents (Claude Code, or any agent running in T3) how to install, switch, edit, create and save these themes, including the CSS limits below.
+
+`.claude/skills/build-t3-theme/SKILL.md` is for contributors making a new theme. It walks an agent through the process used for every theme here: pitch the idea, build an HTML mockup, build the real theme in the demo copy, polish it in the real app, and ship it with screenshots and a README. Its `reference.md` lists the selectors, techniques and CSS limits found so far.
+
+Run `./scripts/check.py` before committing a theme. It catches what T3 would reject or silently drop, such as a backslash in the CSS.
 
 ## Layout
 
@@ -94,7 +148,7 @@ themes/<id>/
 
 ## Theme file format
 
-Each `theme.json` is a JSON object with `name`, `appearance` (`dark` or `light`), `canvas`, `accent`, `colors` and an optional `css` string (up to 50k characters).
+Each `theme.json` is a JSON object with `name`, `appearance` (`dark` or `light`), `canvas`, `accent`, `colors` and an optional `css` string. `css` can hold up to 100,000 characters on nightly 20261117.4825 or later, and 50,000 on older builds (see Requirements).
 
 Notes for the `css` field:
 
