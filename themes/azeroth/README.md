@@ -14,7 +14,7 @@ A fantasy MMO game screen. Dark stone windows with gold titles sit over a misty 
 ## What changes with a thread's state
 
 - **Working:** the thread gets the In Progress quest icon, and a cast bar fills above the composer.
-- **Done:** the thread gets the gold Turn In `?` icon, and its row flashes gold once.
+- **Done:** when the thread you're watching finishes a turn, a pillar of gold light and a "Quest Complete" banner pop up over the conversation and fade out. Threads that finish while you're elsewhere get the gold Turn In `?` icon, and their row flashes gold once.
 - **Needs approval or input:** the thread gets a purple Important icon, and the screen edges pulse purple.
 - **Failed:** the thread gets a red shield, the world turns grey-blue, and the screen edges pulse red like low health.
 
