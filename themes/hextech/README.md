@@ -3,9 +3,11 @@
 An Art Deco hextech fantasy MOBA client and in-game HUD. Deep obsidian panels with antique bronze hairlines, champagne-gold selection bars and glowing cyan accents sit over a misty twilight citadel and astrolabe background. The sidebar becomes a roster list with circular medallions, the header turns the project breadcrumb into a chamfered play badge with live thread counters, replies become obsidian briefing cards, and the composer becomes a winged ability bar over segmented health and mana strips.
 
 - Id: `hextech`
-- Appearance: dark
+- Appearance: dark and light (obsidian & gold in dark mode; crisp white relic stone, charcoal armor headers, and radiant gold in light mode)
 
-> Official T3 demo screenshots (`new-thread.png`, `thread.png`, `panels.png`) are pending a run of `cd scripts/screenshots && npm run shoot -- hextech` in T3 Code.
+| New thread | Thread | Panels |
+| --- | --- | --- |
+| ![New thread](screenshots/new-thread.png) | ![Thread](screenshots/thread.png) | ![Panels](screenshots/panels.png) |
 
 ## What changes with a thread's state
 

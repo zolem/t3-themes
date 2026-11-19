@@ -20,7 +20,7 @@ Each theme's folder has its own README with screenshots and a one-step install f
 | Feature | T3 Code version |
 | --- | --- |
 | Themes with CSS (every theme here) | v0.1.10, or nightly 20261114.4669 or later |
-| Background image files (Azeroth, StarCraft) | v0.1.10, or nightly 20261116.4800 or later |
+| Background image files (Azeroth, StarCraft, Hextech) | v0.1.10, or nightly 20261116.4800 or later |
 | `css` over 50,000 characters, up to 100,000 | nightly 20261117.4825 or later; no stable release yet |
 
 Every theme here keeps its `css` under 50,000 characters, so all of them work on v0.1.10. A theme that needs a newer build says so in its README.
@@ -29,9 +29,9 @@ Every theme here keeps its `css` under 50,000 characters, so all of them work on
 | --- | --- | --- | --- |
 | [![LCARS](themes/lcars/screenshots/thread.png)](themes/lcars) | [![Workshop](themes/workshop/screenshots/thread.png)](themes/workshop) | [![Luna XP](themes/windows-xp/screenshots/thread.png)](themes/windows-xp) | [![Azeroth](themes/azeroth/screenshots/thread.png)](themes/azeroth) |
 
-| StarCraft: Terran | StarCraft: Zerg | StarCraft: Protoss |
-| --- | --- | --- |
-| [![StarCraft: Terran](themes/starcraft-terran/screenshots/thread.png)](themes/starcraft-terran) | [![StarCraft: Zerg](themes/starcraft-zerg/screenshots/thread.png)](themes/starcraft-zerg) | [![StarCraft: Protoss](themes/starcraft-protoss/screenshots/thread.png)](themes/starcraft-protoss) |
+| StarCraft: Terran | StarCraft: Zerg | StarCraft: Protoss | Hextech |
+| --- | --- | --- | --- |
+| [![StarCraft: Terran](themes/starcraft-terran/screenshots/thread.png)](themes/starcraft-terran) | [![StarCraft: Zerg](themes/starcraft-zerg/screenshots/thread.png)](themes/starcraft-zerg) | [![StarCraft: Protoss](themes/starcraft-protoss/screenshots/thread.png)](themes/starcraft-protoss) | [![Hextech](themes/hextech/screenshots/thread.png)](themes/hextech) |
 
 ## Install
 
