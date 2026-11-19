@@ -11,6 +11,7 @@ Custom themes for [T3 Code](https://github.com/pingdotgg/t3code) that restyle th
 | [StarCraft: Terran](themes/starcraft-terran) | `starcraft-terran` | Sci-fi RTS console: bolted gunmetal frames, hazard stripes, tilted side panels, live resource bar, space background |
 | [StarCraft: Zerg](themes/starcraft-zerg) | `starcraft-zerg` | The same RTS console grown from chitin: bone horns, creep veins, organic panels, bile-green controls |
 | [StarCraft: Protoss](themes/starcraft-protoss) | `starcraft-protoss` | The same RTS console in gold and crystal: swept gold frames, cyan glow, leaf-shaped buttons |
+| [Hextech](themes/hextech) | `hextech` | Art Deco hextech fantasy MOBA client and HUD: obsidian roster sidebar, chamfered play header with live counters, winged ability composer, twilight spire background |
 
 Each theme's folder has its own README with screenshots and a one-step install for just that theme.
 
